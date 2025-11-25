@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { DateRange } from "react-day-picker";
-import { Calendar, DollarSign, Scissors, TrendingUp, Users } from "lucide-react";
+import { Calendar, DollarSign, TrendingUp, Users } from "lucide-react";
+import { Layout } from "@/components/Layout";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { AppointmentsChart } from "@/components/dashboard/AppointmentsChart";
 import { BarbersList } from "@/components/dashboard/BarbersList";
@@ -58,24 +59,13 @@ const Index = () => {
   const totalCommission = mockBarbers.reduce((acc, barber) => acc + barber.commission, 0);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border/40 bg-card/30 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
-              <Scissors className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Barber Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Controle de agendamentos e comissões</p>
-            </div>
-          </div>
+    <Layout>
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground mt-1">Visão geral do desempenho da barbearia</p>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 space-y-8">
         {/* Filtro de Período */}
         <div className="flex flex-col gap-4">
           <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
@@ -118,8 +108,8 @@ const Index = () => {
 
         {/* Barbers List */}
         <BarbersList barbers={mockBarbers} />
-      </main>
-    </div>
+      </div>
+    </Layout>
   );
 };
 

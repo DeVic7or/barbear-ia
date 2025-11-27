@@ -29,29 +29,9 @@ import {
   DollarSign,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface Appointment {
-  id: string;
-  client: string;
-  barber: string;
-  service: string;
-  date: string;
-  time: string;
-  status: string;
-  price: number;
-}
-
-interface Service {
-  id: string;
-  name: string;
-  price: number;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-}
+import { useServices } from "@/hooks/useServices";
+import { useProducts } from "@/hooks/useProducts";
+import { useFinalizeAppointment, Appointment } from "@/hooks/useAppointments";
 
 interface AppointmentDetailsModalProps {
   appointment: Appointment | null;
@@ -59,67 +39,87 @@ interface AppointmentDetailsModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const mockServices: Service[] = [
-  { id: "1", name: "Corte", price: 35 },
-  { id: "2", name: "Barba", price: 25 },
-  { id: "3", name: "Corte + Barba", price: 50 },
-  { id: "4", name: "Degradê", price: 40 },
-  { id: "5", name: "Pigmentação", price: 30 },
-];
-
-const mockProducts: Product[] = [
-  { id: "1", name: "Pomada", price: 25 },
-  { id: "2", name: "Shampoo", price: 30 },
-  { id: "3", name: "Cera", price: 20 },
-  { id: "4", name: "Gel", price: 15 },
-];
-
 export function AppointmentDetailsModal({
   appointment,
   open,
   onOpenChange,
 }: AppointmentDetailsModalProps) {
-  const [additionalServices, setAdditionalServices] = useState<Service[]>([]);
-  const [additionalProducts, setAdditionalProducts] = useState<Product[]>([]);
+  const [additionalServiceIds, setAdditionalServiceIds] = useState<string[]>([]);
+  const [additionalProductIds, setAdditionalProductIds] = useState<string[]>([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { toast } = useToast();
+  
+  const { data: services = [] } = useServices();
+  const { data: products = [] } = useProducts();
+  const finalizeAppointment = useFinalizeAppointment();
 
   if (!appointment) return null;
 
-  const addService = (service: Service) => {
-    if (!additionalServices.find((s) => s.id === service.id)) {
-      setAdditionalServices([...additionalServices, service]);
+  const addService = (serviceId: string) => {
+    if (!additionalServiceIds.includes(serviceId)) {
+      setAdditionalServiceIds([...additionalServiceIds, serviceId]);
     }
   };
 
   const removeService = (serviceId: string) => {
-    setAdditionalServices(additionalServices.filter((s) => s.id !== serviceId));
+    setAdditionalServiceIds(additionalServiceIds.filter((id) => id !== serviceId));
   };
 
-  const addProduct = (product: Product) => {
-    if (!additionalProducts.find((p) => p.id === product.id)) {
-      setAdditionalProducts([...additionalProducts, product]);
+  const addProduct = (productId: string) => {
+    if (!additionalProductIds.includes(productId)) {
+      setAdditionalProductIds([...additionalProductIds, productId]);
     }
   };
 
   const removeProduct = (productId: string) => {
-    setAdditionalProducts(additionalProducts.filter((p) => p.id !== productId));
+    setAdditionalProductIds(additionalProductIds.filter((id) => id !== productId));
   };
 
-  const totalPrice =
-    appointment.price +
-    additionalServices.reduce((sum, s) => sum + s.price, 0) +
-    additionalProducts.reduce((sum, p) => sum + p.price, 0);
+  const additionalServices = services.filter((s) =>
+    additionalServiceIds.includes(s.id)
+  );
+  const additionalProducts = products.filter((p) =>
+    additionalProductIds.includes(p.id)
+  );
 
-  const handleFinalize = () => {
-    toast({
-      title: "Agendamento finalizado!",
-      description: `Total: R$ ${totalPrice.toFixed(2)}`,
-    });
-    setAdditionalServices([]);
-    setAdditionalProducts([]);
-    setShowConfirmDialog(false);
-    onOpenChange(false);
+  const mainServicePrice = appointment.services?.price || 0;
+  const additionalServicesTotal = additionalServices.reduce(
+    (sum, s) => sum + Number(s.price),
+    0
+  );
+  const additionalProductsTotal = additionalProducts.reduce(
+    (sum, p) => sum + Number(p.price),
+    0
+  );
+  const totalPrice = mainServicePrice + additionalServicesTotal + additionalProductsTotal;
+
+  const handleFinalize = async () => {
+    try {
+      await finalizeAppointment.mutateAsync({
+        appointmentId: appointment.id,
+        additionalServices: additionalServiceIds,
+        additionalProducts: additionalProductIds.map((id) => ({
+          productId: id,
+          quantity: 1,
+        })),
+      });
+
+      toast({
+        title: "Agendamento finalizado!",
+        description: `Total: R$ ${totalPrice.toFixed(2)}`,
+      });
+      
+      setAdditionalServiceIds([]);
+      setAdditionalProductIds([]);
+      setShowConfirmDialog(false);
+      onOpenChange(false);
+    } catch (error) {
+      toast({
+        title: "Erro ao finalizar agendamento",
+        description: "Tente novamente mais tarde",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -130,6 +130,8 @@ export function AppointmentDetailsModal({
         return "bg-yellow-500/10 text-yellow-500";
       case "Cancelado":
         return "bg-red-500/10 text-red-500";
+      case "Concluído":
+        return "bg-blue-500/10 text-blue-500";
       default:
         return "bg-secondary text-secondary-foreground";
     }
@@ -148,7 +150,7 @@ export function AppointmentDetailsModal({
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16 border-2 border-primary/20">
                 <AvatarFallback className="bg-primary/10 text-primary text-lg">
-                  {appointment.client
+                  {appointment.client_name
                     .split(" ")
                     .map((n) => n[0])
                     .join("")
@@ -156,21 +158,21 @@ export function AppointmentDetailsModal({
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <h3 className="text-xl font-semibold">{appointment.client}</h3>
+                <h3 className="text-xl font-semibold">{appointment.client_name}</h3>
                 <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <User className="h-4 w-4" />
-                    <span>{appointment.barber}</span>
+                    <span>{appointment.barbers?.name || 'N/A'}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     <span>
-                      {new Date(appointment.date).toLocaleDateString("pt-BR")}
+                      {new Date(appointment.appointment_date).toLocaleDateString("pt-BR")}
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
-                    <span>{appointment.time}</span>
+                    <span>{appointment.appointment_time}</span>
                   </div>
                 </div>
               </div>
@@ -185,9 +187,9 @@ export function AppointmentDetailsModal({
             <div>
               <h4 className="font-semibold mb-3">Serviço Principal</h4>
               <div className="flex justify-between items-center p-3 bg-secondary/50 rounded-lg">
-                <span>{appointment.service}</span>
+                <span>{appointment.services?.name || 'N/A'}</span>
                 <span className="font-semibold">
-                  R$ {appointment.price.toFixed(2)}
+                  R$ {mainServicePrice.toFixed(2)}
                 </span>
               </div>
             </div>
@@ -206,7 +208,7 @@ export function AppointmentDetailsModal({
                     <span>{service.name}</span>
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">
-                        R$ {service.price.toFixed(2)}
+                        R$ {Number(service.price).toFixed(2)}
                       </span>
                       <Button
                         variant="ghost"
@@ -220,22 +222,22 @@ export function AppointmentDetailsModal({
                 ))}
               </div>
               <div className="flex flex-wrap gap-2">
-                {mockServices
+                {services
                   .filter(
                     (s) =>
-                      s.name !== appointment.service &&
-                      !additionalServices.find((as) => as.id === s.id)
+                      s.id !== appointment.service_id &&
+                      !additionalServiceIds.includes(s.id)
                   )
                   .map((service) => (
                     <Button
                       key={service.id}
                       variant="outline"
                       size="sm"
-                      onClick={() => addService(service)}
+                      onClick={() => addService(service.id)}
                       className="gap-1"
                     >
                       <Plus className="h-3 w-3" />
-                      {service.name} - R$ {service.price.toFixed(2)}
+                      {service.name} - R$ {Number(service.price).toFixed(2)}
                     </Button>
                   ))}
               </div>
@@ -255,7 +257,7 @@ export function AppointmentDetailsModal({
                     <span>{product.name}</span>
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">
-                        R$ {product.price.toFixed(2)}
+                        R$ {Number(product.price).toFixed(2)}
                       </span>
                       <Button
                         variant="ghost"
@@ -269,18 +271,18 @@ export function AppointmentDetailsModal({
                 ))}
               </div>
               <div className="flex flex-wrap gap-2">
-                {mockProducts
-                  .filter((p) => !additionalProducts.find((ap) => ap.id === p.id))
+                {products
+                  .filter((p) => !additionalProductIds.includes(p.id))
                   .map((product) => (
                     <Button
                       key={product.id}
                       variant="outline"
                       size="sm"
-                      onClick={() => addProduct(product)}
+                      onClick={() => addProduct(product.id)}
                       className="gap-1"
                     >
                       <Plus className="h-3 w-3" />
-                      {product.name} - R$ {product.price.toFixed(2)}
+                      {product.name} - R$ {Number(product.price).toFixed(2)}
                     </Button>
                   ))}
               </div>
@@ -302,7 +304,10 @@ export function AppointmentDetailsModal({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button onClick={() => setShowConfirmDialog(true)}>
+            <Button 
+              onClick={() => setShowConfirmDialog(true)}
+              disabled={appointment.status === "Concluído"}
+            >
               Finalizar Agendamento
             </Button>
           </DialogFooter>
@@ -318,11 +323,11 @@ export function AppointmentDetailsModal({
               <div className="mt-4 space-y-2">
                 <div className="flex justify-between">
                   <span>Cliente:</span>
-                  <span className="font-semibold">{appointment.client}</span>
+                  <span className="font-semibold">{appointment.client_name}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Serviço principal:</span>
-                  <span className="font-semibold">{appointment.service}</span>
+                  <span className="font-semibold">{appointment.services?.name}</span>
                 </div>
                 {additionalServices.length > 0 && (
                   <div className="flex justify-between">

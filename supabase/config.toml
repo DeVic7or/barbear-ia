@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.create-appointment-n8n]
 verify_jwt = false
+
+[functions.update-appointment-n8n]
+verify_jwt = false

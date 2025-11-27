@@ -3,6 +3,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useReports } from "@/hooks/useReports";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingUp, TrendingDown, Clock, Package, Users, Calendar } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from "recharts";
+
+const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', '#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#8dd1e1'];
 
 const Reports = () => {
   const { data: reports, isLoading } = useReports();
@@ -84,54 +99,95 @@ const Reports = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b">
-                  <TrendingUp className="h-4 w-4 text-green-600" />
-                  <h4 className="font-semibold text-foreground">Mais Vendidos</h4>
-                </div>
-                {reports?.topProducts.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Nenhum produto vendido</p>
-                ) : (
-                  reports?.topProducts.map((product) => (
-                    <div key={product.id} className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-foreground">{product.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {product.quantity} unidades
-                        </p>
+            <div className="space-y-6">
+              {reports?.topProducts.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">Nenhum produto vendido</p>
+              ) : (
+                <>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={[...reports?.topProducts || []].reverse()}
+                        layout="vertical"
+                        margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis type="number" className="text-xs" />
+                        <YAxis dataKey="name" type="category" className="text-xs" width={90} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                          }}
+                          formatter={(value: number, name: string) => {
+                            if (name === 'quantity') return [value, 'Quantidade'];
+                            if (name === 'revenue') return [`R$ ${value.toFixed(2)}`, 'Receita'];
+                            return [value, name];
+                          }}
+                        />
+                        <Legend
+                          formatter={(value) => {
+                            if (value === 'quantity') return 'Quantidade';
+                            if (value === 'revenue') return 'Receita';
+                            return value;
+                          }}
+                        />
+                        <Bar dataKey="quantity" fill={COLORS[0]} radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="revenue" fill={COLORS[1]} radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  
+                  <div className="grid gap-6 md:grid-cols-2 pt-4 border-t">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b">
+                        <TrendingUp className="h-4 w-4 text-green-600" />
+                        <h4 className="font-semibold text-foreground">Top 5 Mais Vendidos</h4>
                       </div>
-                      <p className="font-semibold text-foreground">
-                        R$ {product.revenue.toFixed(2)}
-                      </p>
+                      {reports?.topProducts.map((product, idx) => (
+                        <div key={product.id} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg font-bold text-muted-foreground">#{idx + 1}</span>
+                            <div>
+                              <p className="font-medium text-foreground">{product.name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {product.quantity} unidades
+                              </p>
+                            </div>
+                          </div>
+                          <p className="font-semibold text-foreground">
+                            R$ {product.revenue.toFixed(2)}
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                  ))
-                )}
-              </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b">
-                  <TrendingDown className="h-4 w-4 text-red-600" />
-                  <h4 className="font-semibold text-foreground">Menos Vendidos</h4>
-                </div>
-                {reports?.bottomProducts.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Nenhum produto vendido</p>
-                ) : (
-                  reports?.bottomProducts.map((product) => (
-                    <div key={product.id} className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-foreground">{product.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {product.quantity} unidades
-                        </p>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b">
+                        <TrendingDown className="h-4 w-4 text-red-600" />
+                        <h4 className="font-semibold text-foreground">Top 5 Menos Vendidos</h4>
                       </div>
-                      <p className="font-semibold text-foreground">
-                        R$ {product.revenue.toFixed(2)}
-                      </p>
+                      {reports?.bottomProducts.map((product, idx) => (
+                        <div key={product.id} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg font-bold text-muted-foreground">#{idx + 1}</span>
+                            <div>
+                              <p className="font-medium text-foreground">{product.name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {product.quantity} unidades
+                              </p>
+                            </div>
+                          </div>
+                          <p className="font-semibold text-foreground">
+                            R$ {product.revenue.toFixed(2)}
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                  ))
-                )}
-              </div>
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -148,54 +204,94 @@ const Reports = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b">
-                  <TrendingUp className="h-4 w-4 text-green-600" />
-                  <h4 className="font-semibold text-foreground">Mais Procurados</h4>
-                </div>
-                {reports?.topServices.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Nenhum serviço realizado</p>
-                ) : (
-                  reports?.topServices.map((service) => (
-                    <div key={service.id} className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-foreground">{service.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {service.count} agendamentos
-                        </p>
-                      </div>
-                      <p className="font-semibold text-foreground">
-                        R$ {service.revenue.toFixed(2)}
-                      </p>
-                    </div>
-                  ))
-                )}
-              </div>
+            <div className="space-y-6">
+              {reports?.topServices.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">Nenhum serviço realizado</p>
+              ) : (
+                <>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={reports?.topServices}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                          outerRadius={100}
+                          fill="#8884d8"
+                          dataKey="count"
+                        >
+                          {reports?.topServices.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                          }}
+                          formatter={(value: number, name: string, props: any) => {
+                            return [
+                              `${value} agendamentos - R$ ${props.payload.revenue.toFixed(2)}`,
+                              props.payload.name
+                            ];
+                          }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b">
-                  <TrendingDown className="h-4 w-4 text-red-600" />
-                  <h4 className="font-semibold text-foreground">Menos Procurados</h4>
-                </div>
-                {reports?.bottomServices.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Nenhum serviço realizado</p>
-                ) : (
-                  reports?.bottomServices.map((service) => (
-                    <div key={service.id} className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-foreground">{service.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {service.count} agendamentos
-                        </p>
+                  <div className="grid gap-6 md:grid-cols-2 pt-4 border-t">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b">
+                        <TrendingUp className="h-4 w-4 text-green-600" />
+                        <h4 className="font-semibold text-foreground">Top 5 Mais Procurados</h4>
                       </div>
-                      <p className="font-semibold text-foreground">
-                        R$ {service.revenue.toFixed(2)}
-                      </p>
+                      {reports?.topServices.map((service, idx) => (
+                        <div key={service.id} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg font-bold text-muted-foreground">#{idx + 1}</span>
+                            <div>
+                              <p className="font-medium text-foreground">{service.name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {service.count} agendamentos
+                              </p>
+                            </div>
+                          </div>
+                          <p className="font-semibold text-foreground">
+                            R$ {service.revenue.toFixed(2)}
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                  ))
-                )}
-              </div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b">
+                        <TrendingDown className="h-4 w-4 text-red-600" />
+                        <h4 className="font-semibold text-foreground">Top 5 Menos Procurados</h4>
+                      </div>
+                      {reports?.bottomServices.map((service, idx) => (
+                        <div key={service.id} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg font-bold text-muted-foreground">#{idx + 1}</span>
+                            <div>
+                              <p className="font-medium text-foreground">{service.name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {service.count} agendamentos
+                              </p>
+                            </div>
+                          </div>
+                          <p className="font-semibold text-foreground">
+                            R$ {service.revenue.toFixed(2)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -212,54 +308,94 @@ const Reports = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b">
-                  <TrendingUp className="h-4 w-4 text-green-600" />
-                  <h4 className="font-semibold text-foreground">Mais Agendamentos</h4>
-                </div>
-                {reports?.topBarbers.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Nenhum agendamento encontrado</p>
-                ) : (
-                  reports?.topBarbers.map((barber) => (
-                    <div key={barber.id} className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-foreground">{barber.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {barber.appointments} agendamentos
-                        </p>
-                      </div>
-                      <p className="font-semibold text-foreground">
-                        R$ {barber.revenue.toFixed(2)}
-                      </p>
-                    </div>
-                  ))
-                )}
-              </div>
+            <div className="space-y-6">
+              {reports?.topBarbers.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">Nenhum agendamento encontrado</p>
+              ) : (
+                <>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={reports?.topBarbers}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="name" className="text-xs" />
+                        <YAxis className="text-xs" />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                          }}
+                          formatter={(value: number, name: string) => {
+                            if (name === 'appointments') return [value, 'Agendamentos'];
+                            if (name === 'revenue') return [`R$ ${value.toFixed(2)}`, 'Receita'];
+                            return [value, name];
+                          }}
+                        />
+                        <Legend
+                          formatter={(value) => {
+                            if (value === 'appointments') return 'Agendamentos';
+                            if (value === 'revenue') return 'Receita';
+                            return value;
+                          }}
+                        />
+                        <Bar dataKey="appointments" fill={COLORS[0]} radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="revenue" fill={COLORS[2]} radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b">
-                  <TrendingDown className="h-4 w-4 text-red-600" />
-                  <h4 className="font-semibold text-foreground">Menos Agendamentos</h4>
-                </div>
-                {reports?.bottomBarbers.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Nenhum agendamento encontrado</p>
-                ) : (
-                  reports?.bottomBarbers.map((barber) => (
-                    <div key={barber.id} className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-foreground">{barber.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {barber.appointments} agendamentos
-                        </p>
+                  <div className="grid gap-6 md:grid-cols-2 pt-4 border-t">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b">
+                        <TrendingUp className="h-4 w-4 text-green-600" />
+                        <h4 className="font-semibold text-foreground">Top 5 Mais Agendamentos</h4>
                       </div>
-                      <p className="font-semibold text-foreground">
-                        R$ {barber.revenue.toFixed(2)}
-                      </p>
+                      {reports?.topBarbers.map((barber, idx) => (
+                        <div key={barber.id} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg font-bold text-muted-foreground">#{idx + 1}</span>
+                            <div>
+                              <p className="font-medium text-foreground">{barber.name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {barber.appointments} agendamentos
+                              </p>
+                            </div>
+                          </div>
+                          <p className="font-semibold text-foreground">
+                            R$ {barber.revenue.toFixed(2)}
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                  ))
-                )}
-              </div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b">
+                        <TrendingDown className="h-4 w-4 text-red-600" />
+                        <h4 className="font-semibold text-foreground">Top 5 Menos Agendamentos</h4>
+                      </div>
+                      {reports?.bottomBarbers.map((barber, idx) => (
+                        <div key={barber.id} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg font-bold text-muted-foreground">#{idx + 1}</span>
+                            <div>
+                              <p className="font-medium text-foreground">{barber.name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {barber.appointments} agendamentos
+                              </p>
+                            </div>
+                          </div>
+                          <p className="font-semibold text-foreground">
+                            R$ {barber.revenue.toFixed(2)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -276,40 +412,68 @@ const Reports = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b">
-                  <TrendingUp className="h-4 w-4 text-green-600" />
-                  <h4 className="font-semibold text-foreground">Mais Frequentes</h4>
-                </div>
-                {reports?.topTimeSlots.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Nenhum horário registrado</p>
-                ) : (
-                  reports?.topTimeSlots.map((slot, idx) => (
-                    <div key={idx} className="flex items-center justify-between">
-                      <p className="font-medium text-foreground">{slot.time}</p>
-                      <p className="font-semibold text-foreground">{slot.count} agendamentos</p>
-                    </div>
-                  ))
-                )}
-              </div>
+            <div className="space-y-6">
+              {reports?.topTimeSlots.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">Nenhum horário registrado</p>
+              ) : (
+                <>
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={[...reports?.topTimeSlots || []].sort((a, b) => b.count - a.count)}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="time" className="text-xs" />
+                        <YAxis className="text-xs" />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                          }}
+                          formatter={(value: number) => [`${value} agendamentos`, 'Frequência']}
+                        />
+                        <Bar dataKey="count" fill={COLORS[3]} radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b">
-                  <TrendingDown className="h-4 w-4 text-red-600" />
-                  <h4 className="font-semibold text-foreground">Menos Frequentes</h4>
-                </div>
-                {reports?.bottomTimeSlots.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Nenhum horário registrado</p>
-                ) : (
-                  reports?.bottomTimeSlots.map((slot, idx) => (
-                    <div key={idx} className="flex items-center justify-between">
-                      <p className="font-medium text-foreground">{slot.time}</p>
-                      <p className="font-semibold text-foreground">{slot.count} agendamentos</p>
+                  <div className="grid gap-6 md:grid-cols-2 pt-4 border-t">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b">
+                        <TrendingUp className="h-4 w-4 text-green-600" />
+                        <h4 className="font-semibold text-foreground">Top 5 Mais Frequentes</h4>
+                      </div>
+                      {reports?.topTimeSlots.map((slot, idx) => (
+                        <div key={idx} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg font-bold text-muted-foreground">#{idx + 1}</span>
+                            <p className="font-medium text-foreground">{slot.time}</p>
+                          </div>
+                          <p className="font-semibold text-foreground">{slot.count} agendamentos</p>
+                        </div>
+                      ))}
                     </div>
-                  ))
-                )}
-              </div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b">
+                        <TrendingDown className="h-4 w-4 text-red-600" />
+                        <h4 className="font-semibold text-foreground">Top 5 Menos Frequentes</h4>
+                      </div>
+                      {reports?.bottomTimeSlots.map((slot, idx) => (
+                        <div key={idx} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg font-bold text-muted-foreground">#{idx + 1}</span>
+                            <p className="font-medium text-foreground">{slot.time}</p>
+                          </div>
+                          <p className="font-semibold text-foreground">{slot.count} agendamentos</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>

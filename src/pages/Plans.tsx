@@ -2,9 +2,32 @@ import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Check, Copy } from "lucide-react";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const Plans = () => {
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string>("");
+  const { toast } = useToast();
+
+  const pixCode = "00020126330014BR.GOV.BCB.PIX0111123456789015204000053039865802BR5913Barber Manager6009Sao Paulo62070503***6304ABCD";
+
+  const handlePlanSelect = (planName: string) => {
+    setSelectedPlan(planName);
+    setIsPaymentModalOpen(true);
+  };
+
+  const handleCopyPixCode = () => {
+    navigator.clipboard.writeText(pixCode);
+    toast({
+      title: "Código copiado!",
+      description: "O código PIX foi copiado para a área de transferência.",
+    });
+  };
+
   const plans = [
     {
       name: "Básico",
@@ -107,6 +130,7 @@ const Plans = () => {
                   className="w-full mt-auto"
                   variant={plan.popular ? "default" : "outline"}
                   size="lg"
+                  onClick={() => handlePlanSelect(plan.name)}
                 >
                   {plan.popular ? "Assinar Agora" : "Escolher Plano"}
                 </Button>
@@ -126,6 +150,59 @@ const Plans = () => {
             <Button variant="outline">Falar com Especialista</Button>
           </CardContent>
         </Card>
+
+        <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Pagamento via PIX</DialogTitle>
+              <DialogDescription>
+                Plano selecionado: {selectedPlan}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {/* QR Code Mockup */}
+              <div className="flex justify-center">
+                <div className="w-64 h-64 bg-background border-2 border-border rounded-lg flex items-center justify-center">
+                  <div className="w-56 h-56 bg-foreground/10 rounded grid grid-cols-8 gap-1 p-2">
+                    {Array.from({ length: 64 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={`${
+                          Math.random() > 0.5 ? "bg-foreground" : "bg-transparent"
+                        } rounded-sm`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* PIX Copia e Cola */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  PIX Copia e Cola
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    readOnly
+                    value={pixCode}
+                    className="font-mono text-xs"
+                  />
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={handleCopyPixCode}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Clique no botão para copiar o código PIX
+                </p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

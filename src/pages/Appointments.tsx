@@ -1,9 +1,10 @@
 import { Layout } from "@/components/Layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Plus, Calendar, Clock, User, Loader2, CheckCircle2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Calendar, Clock, User, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { useState, useMemo } from "react";
 import { AppointmentDetailsModal } from "@/components/appointments/AppointmentDetailsModal";
 import { useAppointments } from "@/hooks/useAppointments";
@@ -24,6 +25,11 @@ const Appointments = () => {
     [appointments]
   );
 
+  const cancelledAppointments = useMemo(() => 
+    appointments?.filter(apt => apt.status === "Cancelado") || [],
+    [appointments]
+  );
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Confirmado":
@@ -36,6 +42,50 @@ const Appointments = () => {
         return "bg-secondary text-secondary-foreground";
     }
   };
+
+  const renderAppointmentCard = (appointment: any) => (
+    <div
+      key={appointment.id}
+      onClick={() => setSelectedAppointment(appointment)}
+      className="flex items-center justify-between p-4 rounded-lg bg-secondary/50 border border-border/40 hover:bg-secondary/80 transition-all cursor-pointer"
+    >
+      <div className="flex items-center gap-4 flex-1">
+        <Avatar className="h-12 w-12 border-2 border-primary/20">
+          <AvatarFallback className="bg-primary/10 text-primary">
+            {appointment.client_name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-foreground">{appointment.client_name}</h3>
+          <div className="flex flex-wrap gap-3 mt-1 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <User className="h-3 w-3" />
+              <span>{appointment.barbers?.name || 'N/A'}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              <span>{new Date(appointment.appointment_date).toLocaleDateString('pt-BR')}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              <span>{appointment.appointment_time}</span>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground mt-1">{appointment.services?.name || 'N/A'}</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-4">
+        <div className="text-right">
+          <div className="text-lg font-bold text-foreground">
+            {formatCurrency(appointment.services?.price || 0)}
+          </div>
+          <Badge className={getStatusColor(appointment.status)}>
+            {appointment.status}
+          </Badge>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <Layout>
@@ -51,137 +101,82 @@ const Appointments = () => {
           </Button>
         </div>
 
-        <Card className="border-border/40 bg-card/50 backdrop-blur">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
-              Próximos Agendamentos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : confirmedAppointments.length > 0 ? (
-              <div className="space-y-4">
-                {confirmedAppointments.map((appointment) => (
-                <div
-                  key={appointment.id}
-                  onClick={() => setSelectedAppointment(appointment)}
-                  className="flex items-center justify-between p-4 rounded-lg bg-secondary/50 border border-border/40 hover:bg-secondary/80 transition-all cursor-pointer"
-                >
-                  <div className="flex items-center gap-4 flex-1">
-                    <Avatar className="h-12 w-12 border-2 border-primary/20">
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {appointment.client_name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-foreground">{appointment.client_name}</h3>
-                      <div className="flex flex-wrap gap-3 mt-1 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          <span>{appointment.barbers?.name || 'N/A'}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          <span>{new Date(appointment.appointment_date).toLocaleDateString('pt-BR')}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          <span>{appointment.appointment_time}</span>
-                        </div>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1">{appointment.services?.name || 'N/A'}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-foreground">
-                        {formatCurrency(appointment.services?.price || 0)}
-                      </div>
-                      <Badge className={getStatusColor(appointment.status)}>
-                        {appointment.status}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                Nenhum agendamento confirmado
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <Tabs defaultValue="confirmed" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="confirmed" className="gap-2">
+              <Calendar className="h-4 w-4" />
+              Próximos
+            </TabsTrigger>
+            <TabsTrigger value="completed" className="gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              Concluídos
+            </TabsTrigger>
+            <TabsTrigger value="cancelled" className="gap-2">
+              <XCircle className="h-4 w-4" />
+              Cancelados
+            </TabsTrigger>
+          </TabsList>
 
-        <Card className="border-border/40 bg-card/50 backdrop-blur">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
-              Agendamentos Concluídos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : completedAppointments.length > 0 ? (
-              <div className="space-y-4">
-                {completedAppointments.map((appointment) => (
-                <div
-                  key={appointment.id}
-                  onClick={() => setSelectedAppointment(appointment)}
-                  className="flex items-center justify-between p-4 rounded-lg bg-secondary/50 border border-border/40 hover:bg-secondary/80 transition-all cursor-pointer"
-                >
-                  <div className="flex items-center gap-4 flex-1">
-                    <Avatar className="h-12 w-12 border-2 border-primary/20">
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {appointment.client_name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-foreground">{appointment.client_name}</h3>
-                      <div className="flex flex-wrap gap-3 mt-1 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          <span>{appointment.barbers?.name || 'N/A'}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          <span>{new Date(appointment.appointment_date).toLocaleDateString('pt-BR')}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          <span>{appointment.appointment_time}</span>
-                        </div>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1">{appointment.services?.name || 'N/A'}</p>
-                    </div>
+          <TabsContent value="confirmed" className="mt-6">
+            <Card className="border-border/40 bg-card/50 backdrop-blur">
+              <CardContent className="pt-6">
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-foreground">
-                        {formatCurrency(appointment.services?.price || 0)}
-                      </div>
-                      <Badge className={getStatusColor(appointment.status)}>
-                        {appointment.status}
-                      </Badge>
-                    </div>
+                ) : confirmedAppointments.length > 0 ? (
+                  <div className="space-y-4">
+                    {confirmedAppointments.map(renderAppointmentCard)}
                   </div>
-                </div>
-              ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                Nenhum agendamento concluído
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Nenhum agendamento confirmado
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="completed" className="mt-6">
+            <Card className="border-border/40 bg-card/50 backdrop-blur">
+              <CardContent className="pt-6">
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : completedAppointments.length > 0 ? (
+                  <div className="space-y-4">
+                    {completedAppointments.map(renderAppointmentCard)}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Nenhum agendamento concluído
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="cancelled" className="mt-6">
+            <Card className="border-border/40 bg-card/50 backdrop-blur">
+              <CardContent className="pt-6">
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : cancelledAppointments.length > 0 ? (
+                  <div className="space-y-4">
+                    {cancelledAppointments.map(renderAppointmentCard)}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Nenhum agendamento cancelado
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         <AppointmentDetailsModal
           appointment={selectedAppointment}

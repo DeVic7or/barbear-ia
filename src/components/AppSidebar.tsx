@@ -56,23 +56,21 @@ export function AppSidebar() {
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      end
-                      className={open 
-                        ? "hover:bg-secondary/80 transition-colors" 
-                        : "hover:bg-secondary/80 transition-colors flex justify-center"
-                      }
-                      activeClassName={open
-                        ? "bg-primary/10 text-primary font-medium border-l-4 border-primary"
-                        : "bg-primary/10 text-primary font-medium"
-                      }
-                    >
-                      <item.icon className="h-5 w-5 flex-shrink-0" />
-                      {open && <span className="ml-3">{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
+                  <NavLink
+                    to={item.url}
+                    end
+                    className={open 
+                      ? "flex items-center px-4 py-3 hover:bg-secondary/80 transition-colors rounded-md" 
+                      : "flex items-center justify-center px-2 py-3 hover:bg-secondary/80 transition-colors rounded-md mx-auto w-12"
+                    }
+                    activeClassName={open
+                      ? "bg-primary/10 text-primary font-medium border-l-4 border-primary"
+                      : "bg-primary/10 text-primary font-medium"
+                    }
+                  >
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    {open && <span className="ml-3">{item.title}</span>}
+                  </NavLink>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

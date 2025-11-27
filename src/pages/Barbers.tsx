@@ -3,12 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Phone, Edit, Percent, Trash2 } from "lucide-react";
+import { Plus, Phone, Edit, Percent, Trash2, Filter } from "lucide-react";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
@@ -20,6 +22,7 @@ const barberSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").max(100),
   phone: z.string().min(1, "Telefone é obrigatório").max(20),
   commission_percentage: z.coerce.number().min(0, "Comissão deve ser no mínimo 0%").max(100, "Comissão deve ser no máximo 100%"),
+  is_active: z.boolean().default(true),
 });
 
 type BarberFormData = z.infer<typeof barberSchema>;
@@ -28,6 +31,7 @@ const Barbers = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [barberToDelete, setBarberToDelete] = useState<string | null>(null);
   const [barberToEdit, setBarberToEdit] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const queryClient = useQueryClient();
 
   const form = useForm<BarberFormData>({
@@ -36,6 +40,7 @@ const Barbers = () => {
       name: "",
       phone: "",
       commission_percentage: 0,
+      is_active: true,
     },
   });
 
@@ -60,6 +65,7 @@ const Barbers = () => {
           name: data.name,
           phone: data.phone,
           commission_percentage: data.commission_percentage,
+          is_active: data.is_active,
         }]);
       
       if (error) throw error;
@@ -91,6 +97,7 @@ const Barbers = () => {
           name: data.name,
           phone: data.phone,
           commission_percentage: data.commission_percentage,
+          is_active: data.is_active,
         })
         .eq("id", id);
       
@@ -163,9 +170,16 @@ const Barbers = () => {
       name: barber.name,
       phone: barber.phone,
       commission_percentage: barber.commission_percentage,
+      is_active: barber.is_active,
     });
     setIsDialogOpen(true);
   };
+
+  const filteredBarbers = barbers?.filter((barber) => {
+    if (statusFilter === "active") return barber.is_active;
+    if (statusFilter === "inactive") return !barber.is_active;
+    return true;
+  });
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
@@ -176,19 +190,32 @@ const Barbers = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8 space-y-8">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Barbeiros</h1>
             <p className="text-muted-foreground mt-1">Gerencie sua equipe de profissionais</p>
           </div>
           
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                Adicionar Barbeiro
-              </Button>
-            </DialogTrigger>
+          <div className="flex gap-2 items-center">
+            <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+              <SelectTrigger className="w-[180px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Filtrar por status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="active">Ativos</SelectItem>
+                <SelectItem value="inactive">Inativos</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Adicionar Barbeiro
+                </Button>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{barberToEdit ? "Editar Barbeiro" : "Adicionar Novo Barbeiro"}</DialogTitle>
@@ -234,6 +261,26 @@ const Barbers = () => {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="is_active"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Status Ativo</FormLabel>
+                          <p className="text-sm text-muted-foreground">
+                            Barbeiro disponível para agendamentos
+                          </p>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
                   <div className="flex justify-end gap-2 pt-4">
                     <Button type="button" variant="outline" onClick={handleCloseDialog}>
                       Cancelar
@@ -246,13 +293,14 @@ const Barbers = () => {
               </Form>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">Carregando...</div>
-        ) : barbers && barbers.length > 0 ? (
+        ) : filteredBarbers && filteredBarbers.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {barbers.map((barber) => (
+            {filteredBarbers.map((barber) => (
               <Card key={barber.id} className="border-border/40 bg-card/50 backdrop-blur hover:bg-card/80 transition-all">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -265,8 +313,15 @@ const Barbers = () => {
                       </Avatar>
                       <div>
                         <CardTitle className="text-lg">{barber.name}</CardTitle>
-                        <Badge variant="secondary" className="mt-1 bg-primary/10 text-primary">
-                          Ativo
+                        <Badge 
+                          variant="secondary" 
+                          className={`mt-1 ${
+                            barber.is_active 
+                              ? "bg-primary/10 text-primary" 
+                              : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {barber.is_active ? "Ativo" : "Inativo"}
                         </Badge>
                       </div>
                     </div>
@@ -305,8 +360,16 @@ const Barbers = () => {
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">Nenhum barbeiro cadastrado ainda.</p>
-            <p className="text-sm text-muted-foreground mt-2">Clique em "Adicionar Barbeiro" para começar.</p>
+            <p className="text-muted-foreground">
+              {statusFilter === "all" 
+                ? "Nenhum barbeiro cadastrado ainda." 
+                : statusFilter === "active"
+                ? "Nenhum barbeiro ativo encontrado."
+                : "Nenhum barbeiro inativo encontrado."}
+            </p>
+            {statusFilter === "all" && (
+              <p className="text-sm text-muted-foreground mt-2">Clique em "Adicionar Barbeiro" para começar.</p>
+            )}
           </div>
         )}
       </div>

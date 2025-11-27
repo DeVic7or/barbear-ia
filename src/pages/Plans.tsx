@@ -29,6 +29,7 @@ const Plans = () => {
         "Agendamentos ilimitados",
         "Relatórios avançados",
         "Suporte prioritário",
+        "Assistência com IA",
         "Integração WhatsApp",
         "Gestão de produtos",
         "Comissões automáticas",

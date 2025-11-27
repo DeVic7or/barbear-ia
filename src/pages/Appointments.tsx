@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Plus, Calendar, Clock, User } from "lucide-react";
+import { useState } from "react";
+import { AppointmentDetailsModal } from "@/components/appointments/AppointmentDetailsModal";
 
 const mockAppointments = [
   {
@@ -49,6 +51,8 @@ const mockAppointments = [
 ];
 
 const Appointments = () => {
+  const [selectedAppointment, setSelectedAppointment] = useState<typeof mockAppointments[0] | null>(null);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Confirmado":
@@ -85,7 +89,8 @@ const Appointments = () => {
               {mockAppointments.map((appointment) => (
                 <div
                   key={appointment.id}
-                  className="flex items-center justify-between p-4 rounded-lg bg-secondary/50 border border-border/40 hover:bg-secondary/80 transition-all"
+                  onClick={() => setSelectedAppointment(appointment)}
+                  className="flex items-center justify-between p-4 rounded-lg bg-secondary/50 border border-border/40 hover:bg-secondary/80 transition-all cursor-pointer"
                 >
                   <div className="flex items-center gap-4 flex-1">
                     <Avatar className="h-12 w-12 border-2 border-primary/20">
@@ -127,6 +132,12 @@ const Appointments = () => {
             </div>
           </CardContent>
         </Card>
+
+        <AppointmentDetailsModal
+          appointment={selectedAppointment}
+          open={!!selectedAppointment}
+          onOpenChange={(open) => !open && setSelectedAppointment(null)}
+        />
       </div>
     </Layout>
   );

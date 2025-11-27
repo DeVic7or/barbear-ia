@@ -44,7 +44,9 @@ const Reports = () => {
               <Calendar className="h-5 w-5" />
               Agendamentos Concluídos
             </CardTitle>
-            <CardDescription>Resumo geral dos agendamentos finalizados</CardDescription>
+            <CardDescription>
+              Resumo geral dos agendamentos finalizados com métricas de receita e desempenho
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-3">
@@ -70,30 +72,34 @@ const Reports = () => {
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Produtos Mais Vendidos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-                Produtos Mais Vendidos
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+        {/* Relatório de Produtos */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Desempenho de Produtos
+            </CardTitle>
+            <CardDescription>
+              Análise dos produtos mais e menos vendidos com ranking de vendas e receita
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                  <h4 className="font-semibold text-foreground">Mais Vendidos</h4>
+                </div>
                 {reports?.topProducts.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Nenhum produto vendido</p>
                 ) : (
                   reports?.topProducts.map((product) => (
                     <div key={product.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Package className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium text-foreground">{product.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {product.quantity} unidades vendidas
-                          </p>
-                        </div>
+                      <div>
+                        <p className="font-medium text-foreground">{product.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {product.quantity} unidades
+                        </p>
                       </div>
                       <p className="font-semibold text-foreground">
                         R$ {product.revenue.toFixed(2)}
@@ -102,32 +108,22 @@ const Reports = () => {
                   ))
                 )}
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Produtos Menos Vendidos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingDown className="h-5 w-5 text-red-600" />
-                Produtos Menos Vendidos
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
               <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <TrendingDown className="h-4 w-4 text-red-600" />
+                  <h4 className="font-semibold text-foreground">Menos Vendidos</h4>
+                </div>
                 {reports?.bottomProducts.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Nenhum produto vendido</p>
                 ) : (
                   reports?.bottomProducts.map((product) => (
                     <div key={product.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Package className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium text-foreground">{product.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {product.quantity} unidades vendidas
-                          </p>
-                        </div>
+                      <div>
+                        <p className="font-medium text-foreground">{product.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {product.quantity} unidades
+                        </p>
                       </div>
                       <p className="font-semibold text-foreground">
                         R$ {product.revenue.toFixed(2)}
@@ -136,32 +132,38 @@ const Reports = () => {
                   ))
                 )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Serviços Mais Procurados */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-                Serviços Mais Procurados
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+        {/* Relatório de Serviços */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Desempenho de Serviços
+            </CardTitle>
+            <CardDescription>
+              Ranking dos serviços mais e menos procurados com número de agendamentos e receita gerada
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                  <h4 className="font-semibold text-foreground">Mais Procurados</h4>
+                </div>
                 {reports?.topServices.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Nenhum serviço realizado</p>
                 ) : (
                   reports?.topServices.map((service) => (
                     <div key={service.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium text-foreground">{service.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {service.count} agendamentos
-                          </p>
-                        </div>
+                      <div>
+                        <p className="font-medium text-foreground">{service.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {service.count} agendamentos
+                        </p>
                       </div>
                       <p className="font-semibold text-foreground">
                         R$ {service.revenue.toFixed(2)}
@@ -170,32 +172,22 @@ const Reports = () => {
                   ))
                 )}
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Serviços Menos Procurados */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingDown className="h-5 w-5 text-red-600" />
-                Serviços Menos Procurados
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
               <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <TrendingDown className="h-4 w-4 text-red-600" />
+                  <h4 className="font-semibold text-foreground">Menos Procurados</h4>
+                </div>
                 {reports?.bottomServices.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Nenhum serviço realizado</p>
                 ) : (
                   reports?.bottomServices.map((service) => (
                     <div key={service.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium text-foreground">{service.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {service.count} agendamentos
-                          </p>
-                        </div>
+                      <div>
+                        <p className="font-medium text-foreground">{service.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {service.count} agendamentos
+                        </p>
                       </div>
                       <p className="font-semibold text-foreground">
                         R$ {service.revenue.toFixed(2)}
@@ -204,32 +196,38 @@ const Reports = () => {
                   ))
                 )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Barbeiros com Mais Agendamentos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-                Barbeiros com Mais Agendamentos
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+        {/* Relatório de Barbeiros */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Desempenho dos Barbeiros
+            </CardTitle>
+            <CardDescription>
+              Comparativo de barbeiros com mais e menos agendamentos concluídos e receita individual
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                  <h4 className="font-semibold text-foreground">Mais Agendamentos</h4>
+                </div>
                 {reports?.topBarbers.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Nenhum agendamento encontrado</p>
                 ) : (
                   reports?.topBarbers.map((barber) => (
                     <div key={barber.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium text-foreground">{barber.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {barber.appointments} agendamentos
-                          </p>
-                        </div>
+                      <div>
+                        <p className="font-medium text-foreground">{barber.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {barber.appointments} agendamentos
+                        </p>
                       </div>
                       <p className="font-semibold text-foreground">
                         R$ {barber.revenue.toFixed(2)}
@@ -238,32 +236,22 @@ const Reports = () => {
                   ))
                 )}
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Barbeiros com Menos Agendamentos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingDown className="h-5 w-5 text-red-600" />
-                Barbeiros com Menos Agendamentos
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
               <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <TrendingDown className="h-4 w-4 text-red-600" />
+                  <h4 className="font-semibold text-foreground">Menos Agendamentos</h4>
+                </div>
                 {reports?.bottomBarbers.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Nenhum agendamento encontrado</p>
                 ) : (
                   reports?.bottomBarbers.map((barber) => (
                     <div key={barber.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium text-foreground">{barber.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {barber.appointments} agendamentos
-                          </p>
-                        </div>
+                      <div>
+                        <p className="font-medium text-foreground">{barber.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {barber.appointments} agendamentos
+                        </p>
                       </div>
                       <p className="font-semibold text-foreground">
                         R$ {barber.revenue.toFixed(2)}
@@ -272,63 +260,59 @@ const Reports = () => {
                   ))
                 )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Horários Mais Frequentes */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-                Horários Mais Frequentes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+        {/* Relatório de Horários */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Análise de Horários
+            </CardTitle>
+            <CardDescription>
+              Horários mais e menos frequentes de agendamentos para otimizar a disponibilidade
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                  <h4 className="font-semibold text-foreground">Mais Frequentes</h4>
+                </div>
                 {reports?.topTimeSlots.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Nenhum horário registrado</p>
                 ) : (
                   reports?.topTimeSlots.map((slot, idx) => (
                     <div key={idx} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <p className="font-medium text-foreground">{slot.time}</p>
-                      </div>
+                      <p className="font-medium text-foreground">{slot.time}</p>
                       <p className="font-semibold text-foreground">{slot.count} agendamentos</p>
                     </div>
                   ))
                 )}
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Horários Menos Frequentes */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingDown className="h-5 w-5 text-red-600" />
-                Horários Menos Frequentes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
               <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b">
+                  <TrendingDown className="h-4 w-4 text-red-600" />
+                  <h4 className="font-semibold text-foreground">Menos Frequentes</h4>
+                </div>
                 {reports?.bottomTimeSlots.length === 0 ? (
                   <p className="text-sm text-muted-foreground">Nenhum horário registrado</p>
                 ) : (
                   reports?.bottomTimeSlots.map((slot, idx) => (
                     <div key={idx} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <p className="font-medium text-foreground">{slot.time}</p>
-                      </div>
+                      <p className="font-medium text-foreground">{slot.time}</p>
                       <p className="font-semibold text-foreground">{slot.count} agendamentos</p>
                     </div>
                   ))
                 )}
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );

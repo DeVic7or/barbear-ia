@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Phone, Edit, Percent, Trash2, Filter } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
@@ -190,32 +190,29 @@ const Barbers = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8 space-y-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Barbeiros</h1>
-            <p className="text-muted-foreground mt-1">Gerencie sua equipe de profissionais</p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start">
+          <div className="space-y-4 flex-1">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Barbeiros</h1>
+              <p className="text-muted-foreground mt-1">Gerencie sua equipe de profissionais</p>
+            </div>
+            
+            <Tabs value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)} className="w-full sm:w-auto">
+              <TabsList className="grid w-full sm:w-auto grid-cols-3">
+                <TabsTrigger value="all">Todos</TabsTrigger>
+                <TabsTrigger value="active">Ativos</TabsTrigger>
+                <TabsTrigger value="inactive">Inativos</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
           
-          <div className="flex gap-2 items-center">
-            <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-              <SelectTrigger className="w-[180px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filtrar por status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="active">Ativos</SelectItem>
-                <SelectItem value="inactive">Inativos</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Adicionar Barbeiro
-                </Button>
-              </DialogTrigger>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Adicionar Barbeiro
+              </Button>
+            </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{barberToEdit ? "Editar Barbeiro" : "Adicionar Novo Barbeiro"}</DialogTitle>
@@ -293,7 +290,6 @@ const Barbers = () => {
               </Form>
             </DialogContent>
           </Dialog>
-          </div>
         </div>
 
         {isLoading ? (

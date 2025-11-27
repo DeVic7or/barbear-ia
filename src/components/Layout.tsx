@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AIChatbot } from "@/components/AIChatbot";
+import { NotificationsPopover } from "@/components/NotificationsPopover";
 import { Menu, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,15 +39,18 @@ export function Layout({ children }: LayoutProps) {
             <SidebarTrigger className="hover:bg-secondary/80 transition-colors">
               <Menu className="h-5 w-5" />
             </SidebarTrigger>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              Sair
-            </Button>
+            <div className="flex items-center gap-2">
+              <NotificationsPopover />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Sair
+              </Button>
+            </div>
           </header>
           <main className="flex-1">
             {children}

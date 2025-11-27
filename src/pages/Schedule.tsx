@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useUserAvailability, useCreateAvailability, useUpdateAvailability, useDeleteAvailability } from "@/hooks/useAvailability";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Clock, Plus, Trash2 } from "lucide-react";
+import { Calendar, Clock, Plus, Trash2, Copy } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -38,6 +40,14 @@ const Schedule = () => {
     start_time: "09:00",
     end_time: "18:00",
   });
+
+  const [copyDialogOpen, setCopyDialogOpen] = useState(false);
+  const [sourceToCopy, setSourceToCopy] = useState<{
+    day_of_week: number;
+    start_time: string;
+    end_time: string;
+  } | null>(null);
+  const [selectedDays, setSelectedDays] = useState<number[]>([]);
 
   useEffect(() => {
     const getUser = async () => {
@@ -133,6 +143,65 @@ const Schedule = () => {
       toast({
         title: "Erro",
         description: "Falha ao remover horário",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleOpenCopyDialog = (schedule: { day_of_week: number; start_time: string; end_time: string }) => {
+    setSourceToCopy(schedule);
+    setSelectedDays([]);
+    setCopyDialogOpen(true);
+  };
+
+  const handleToggleDay = (dayValue: number) => {
+    setSelectedDays(prev => 
+      prev.includes(dayValue) 
+        ? prev.filter(d => d !== dayValue)
+        : [...prev, dayValue]
+    );
+  };
+
+  const handleCopyToSelectedDays = async () => {
+    if (!userId || !sourceToCopy || selectedDays.length === 0) return;
+
+    try {
+      for (const dayOfWeek of selectedDays) {
+        // Check if availability already exists for this day
+        const existing = availability?.find(a => a.day_of_week === dayOfWeek);
+
+        if (existing) {
+          // Update existing
+          await updateAvailability.mutateAsync({
+            id: existing.id,
+            start_time: sourceToCopy.start_time,
+            end_time: sourceToCopy.end_time,
+            is_active: true,
+          });
+        } else {
+          // Create new
+          await createAvailability.mutateAsync({
+            user_id: userId,
+            day_of_week: dayOfWeek,
+            start_time: sourceToCopy.start_time,
+            end_time: sourceToCopy.end_time,
+            is_active: true,
+          });
+        }
+      }
+
+      toast({
+        title: "Sucesso",
+        description: `Horário copiado para ${selectedDays.length} dia(s)`,
+      });
+
+      setCopyDialogOpen(false);
+      setSelectedDays([]);
+      setSourceToCopy(null);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Falha ao copiar horários",
         variant: "destructive",
       });
     }
@@ -276,7 +345,7 @@ const Schedule = () => {
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2 sm:gap-4">
+                      <div className="flex items-center gap-2 sm:gap-3">
                         <div className="flex items-center gap-2">
                           <Label htmlFor={`active-${schedule.id}`} className="text-xs sm:text-sm cursor-pointer">
                             {schedule.is_active ? "Ativo" : "Inativo"}
@@ -289,6 +358,20 @@ const Schedule = () => {
                             }
                           />
                         </div>
+
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleOpenCopyDialog({
+                            day_of_week: schedule.day_of_week,
+                            start_time: schedule.start_time,
+                            end_time: schedule.end_time
+                          })}
+                          title="Copiar para outros dias"
+                          className="h-8 w-8 sm:h-9 sm:w-9"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
 
                         <Button
                           variant="ghost"
@@ -307,6 +390,67 @@ const Schedule = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Copy Dialog */}
+        <Dialog open={copyDialogOpen} onOpenChange={setCopyDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Copiar Horário</DialogTitle>
+              <DialogDescription>
+                Selecione os dias para copiar o horário de{" "}
+                <strong>
+                  {sourceToCopy && DAYS_OF_WEEK.find(d => d.value === sourceToCopy.day_of_week)?.label}
+                </strong>
+                {sourceToCopy && (
+                  <span className="block mt-1 text-xs">
+                    ({sourceToCopy.start_time.substring(0, 5)} - {sourceToCopy.end_time.substring(0, 5)})
+                  </span>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-3 py-4 max-h-[300px] overflow-y-auto">
+              {DAYS_OF_WEEK.filter(day => day.value !== sourceToCopy?.day_of_week).map((day) => {
+                const hasExisting = availability?.find(a => a.day_of_week === day.value);
+                return (
+                  <div key={day.value} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50">
+                    <Checkbox
+                      id={`day-${day.value}`}
+                      checked={selectedDays.includes(day.value)}
+                      onCheckedChange={() => handleToggleDay(day.value)}
+                    />
+                    <Label
+                      htmlFor={`day-${day.value}`}
+                      className="flex-1 cursor-pointer text-sm"
+                    >
+                      {day.label}
+                      {hasExisting && (
+                        <span className="ml-2 text-xs text-muted-foreground">
+                          (substituirá {hasExisting.start_time.substring(0, 5)} - {hasExisting.end_time.substring(0, 5)})
+                        </span>
+                      )}
+                    </Label>
+                  </div>
+                );
+              })}
+            </div>
+
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                variant="outline"
+                onClick={() => setCopyDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleCopyToSelectedDays}
+                disabled={selectedDays.length === 0 || createAvailability.isPending || updateAvailability.isPending}
+              >
+                Copiar para {selectedDays.length} dia(s)
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );

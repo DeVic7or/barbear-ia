@@ -61,10 +61,10 @@ export const CurrentPlanBanner = () => {
   return (
     <Card className={isExpiringSoon ? "border-destructive/50 bg-destructive/5" : "bg-gradient-to-r from-primary/5 to-primary/10"}>
       <CardContent className="p-4 sm:p-6">
-        {/* Mobile Layout - Stack Vertically */}
-        <div className="flex flex-col gap-4 sm:gap-6">
+        {/* Mobile: Stack Vertically | Desktop: Horizontal Distribution */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 sm:gap-6">
           {/* Plan Info Section */}
-          <div className="flex items-start gap-3 sm:gap-4">
+          <div className="flex items-start gap-3 sm:gap-4 lg:flex-shrink-0">
             <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
               <CreditCard className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
             </div>
@@ -83,8 +83,8 @@ export const CurrentPlanBanner = () => {
             </div>
           </div>
 
-          {/* Stats Section - 2 columns on mobile, horizontal on desktop */}
-          <div className="grid grid-cols-2 gap-4 sm:flex sm:items-center sm:gap-6 lg:gap-8">
+          {/* Stats Section - Horizontal on all sizes */}
+          <div className="flex items-center gap-4 sm:gap-6 lg:gap-8 lg:flex-1 lg:justify-center">
             {/* Price */}
             <div className="text-left sm:text-center">
               <p className="text-xs sm:text-sm text-muted-foreground mb-1">Valor</p>
@@ -94,8 +94,8 @@ export const CurrentPlanBanner = () => {
               {!isTrial && <p className="text-xs text-muted-foreground">/mês</p>}
             </div>
 
-            {/* Divider - Hidden on mobile */}
-            <div className="hidden sm:block h-12 w-px bg-border" />
+            {/* Divider */}
+            <div className="h-12 w-px bg-border" />
 
             {/* Expiration */}
             {subscription.next_payment_date && (
@@ -126,14 +126,14 @@ export const CurrentPlanBanner = () => {
             )}
           </div>
 
-          {/* CTA Button - Full width on mobile */}
+          {/* CTA Button */}
           {isTrial ? (
-            <Button onClick={() => navigate("/planos")} size="lg" className="w-full sm:w-auto gap-2">
+            <Button onClick={() => navigate("/planos")} size="lg" className="w-full sm:w-auto lg:flex-shrink-0 gap-2">
               Assinar um Plano
               <ArrowRight className="h-4 w-4" />
             </Button>
           ) : (
-            <Button onClick={() => navigate("/pagamentos")} variant="outline" size="lg" className="w-full sm:w-auto gap-2">
+            <Button onClick={() => navigate("/pagamentos")} variant="outline" size="lg" className="w-full sm:w-auto lg:flex-shrink-0 gap-2">
               Ver Pagamentos
               <ArrowRight className="h-4 w-4" />
             </Button>

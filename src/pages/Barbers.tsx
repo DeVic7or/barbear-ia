@@ -3,11 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Phone, Edit, Percent } from "lucide-react";
+import { Plus, Phone, Edit, Percent, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
@@ -25,6 +26,7 @@ type BarberFormData = z.infer<typeof barberSchema>;
 
 const Barbers = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [barberToDelete, setBarberToDelete] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const form = useForm<BarberFormData>({
@@ -80,8 +82,41 @@ const Barbers = () => {
     },
   });
 
+  const deleteBarberMutation = useMutation({
+    mutationFn: async (barberId: string) => {
+      const { error } = await supabase
+        .from("barbers")
+        .delete()
+        .eq("id", barberId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["barbers"] });
+      toast({
+        title: "Sucesso!",
+        description: "Barbeiro excluído com sucesso.",
+      });
+      setBarberToDelete(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o barbeiro. Tente novamente.",
+        variant: "destructive",
+      });
+      console.error(error);
+    },
+  });
+
   const onSubmit = (data: BarberFormData) => {
     addBarberMutation.mutate(data);
+  };
+
+  const handleDeleteBarber = () => {
+    if (barberToDelete) {
+      deleteBarberMutation.mutate(barberToDelete);
+    }
   };
 
   return (
@@ -181,9 +216,19 @@ const Barbers = () => {
                         </Badge>
                       </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="hover:bg-secondary/80">
-                      <Edit className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" className="hover:bg-secondary/80">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => setBarberToDelete(barber.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -206,6 +251,26 @@ const Barbers = () => {
           </div>
         )}
       </div>
+
+      <AlertDialog open={!!barberToDelete} onOpenChange={(open) => !open && setBarberToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este barbeiro? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteBarber}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 };

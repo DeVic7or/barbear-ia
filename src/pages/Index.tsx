@@ -6,6 +6,7 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { AppointmentsChart } from "@/components/dashboard/AppointmentsChart";
 import { BarbersList } from "@/components/dashboard/BarbersList";
 import { PeriodFilter } from "@/components/dashboard/PeriodFilter";
+import { useBarberCommissions } from "@/hooks/useBarberCommissions";
 
 // Mock data - substituir com dados reais da API
 const mockChartData = [
@@ -17,46 +18,17 @@ const mockChartData = [
   { date: "25/11", appointments: 25 },
 ];
 
-const mockBarbers = [
-  {
-    id: "1",
-    name: "Carlos Silva",
-    appointments: 45,
-    revenue: 2250,
-    commission: 675,
-  },
-  {
-    id: "2",
-    name: "João Santos",
-    appointments: 38,
-    revenue: 1900,
-    commission: 570,
-  },
-  {
-    id: "3",
-    name: "Pedro Oliveira",
-    appointments: 42,
-    revenue: 2100,
-    commission: 630,
-  },
-  {
-    id: "4",
-    name: "Rafael Costa",
-    appointments: 35,
-    revenue: 1750,
-    commission: 525,
-  },
-];
-
 const Index = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     to: new Date(),
   });
 
-  const totalAppointments = mockBarbers.reduce((acc, barber) => acc + barber.appointments, 0);
-  const totalRevenue = mockBarbers.reduce((acc, barber) => acc + barber.revenue, 0);
-  const totalCommission = mockBarbers.reduce((acc, barber) => acc + barber.commission, 0);
+  const { data: barbersData, isLoading } = useBarberCommissions(dateRange);
+
+  const totalAppointments = barbersData?.reduce((acc, barber) => acc + barber.appointments, 0) || 0;
+  const totalRevenue = barbersData?.reduce((acc, barber) => acc + barber.revenue, 0) || 0;
+  const totalCommission = barbersData?.reduce((acc, barber) => acc + barber.commission, 0) || 0;
 
   return (
     <Layout>
@@ -97,7 +69,7 @@ const Index = () => {
           />
           <StatsCard
             title="Barbeiros Ativos"
-            value={mockBarbers.length}
+            value={barbersData?.length || 0}
             icon={Users}
             description="Profissionais"
           />
@@ -107,7 +79,15 @@ const Index = () => {
         <AppointmentsChart data={mockChartData} />
 
         {/* Barbers List */}
-        <BarbersList barbers={mockBarbers} />
+        {isLoading ? (
+          <div className="text-center py-8 text-muted-foreground">Carregando comissões...</div>
+        ) : barbersData && barbersData.length > 0 ? (
+          <BarbersList barbers={barbersData} />
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            Nenhum agendamento finalizado no período selecionado
+          </div>
+        )}
       </div>
     </Layout>
   );

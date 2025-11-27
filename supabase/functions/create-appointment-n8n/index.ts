@@ -226,6 +226,60 @@ Deno.serve(async (req) => {
       console.log('Barber is available, proceeding with appointment creation');
     }
 
+    // Check if appointment is during a break
+    if (payload.barber_id) {
+      console.log('Checking for breaks during appointment time...');
+      
+      const appointmentDate = new Date(payload.appointment_date + 'T00:00:00');
+      const dayOfWeek = appointmentDate.getDay();
+      
+      // Get availability for this day
+      const { data: availability } = await supabase
+        .from('user_availability')
+        .select('id')
+        .eq('user_id', payload.barber_id)
+        .eq('day_of_week', dayOfWeek)
+        .eq('is_active', true)
+        .single();
+
+      if (availability) {
+        // Check if appointment conflicts with any break
+        const { data: breaks } = await supabase
+          .from('user_breaks')
+          .select('break_name, break_start_time, break_end_time')
+          .eq('user_availability_id', availability.id);
+
+        if (breaks && breaks.length > 0) {
+          const appointmentTime = payload.appointment_time;
+          
+          for (const breakItem of breaks) {
+            // Check if appointment time falls within break period
+            if (appointmentTime >= breakItem.break_start_time && appointmentTime < breakItem.break_end_time) {
+              console.error('Appointment conflicts with break:', breakItem.break_name);
+              return new Response(
+                JSON.stringify({ 
+                  error: 'Horário durante intervalo',
+                  details: `Este horário está durante o intervalo de ${breakItem.break_name} (${breakItem.break_start_time.substring(0, 5)} - ${breakItem.break_end_time.substring(0, 5)})`,
+                  break_info: {
+                    name: breakItem.break_name,
+                    start: breakItem.break_start_time,
+                    end: breakItem.break_end_time
+                  },
+                  success: false 
+                }),
+                { 
+                  status: 400, 
+                  headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+                }
+              );
+            }
+          }
+        }
+      }
+
+      console.log('No break conflicts, proceeding with appointment creation');
+    }
+
     // Prepare appointment data
     const appointmentData = {
       client_name: payload.client_name.trim(),

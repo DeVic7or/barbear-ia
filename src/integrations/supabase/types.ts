@@ -151,6 +151,7 @@ export type Database = {
           commission_percentage: number
           created_at: string
           id: string
+          is_active: boolean
           name: string
           phone: string
           updated_at: string
@@ -159,6 +160,7 @@ export type Database = {
           commission_percentage: number
           created_at?: string
           id?: string
+          is_active?: boolean
           name: string
           phone: string
           updated_at?: string
@@ -167,6 +169,7 @@ export type Database = {
           commission_percentage?: number
           created_at?: string
           id?: string
+          is_active?: boolean
           name?: string
           phone?: string
           updated_at?: string

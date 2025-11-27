@@ -7,16 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Check, Copy } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscriptions } from "@/hooks/useSubscriptions";
 
 const Plans = () => {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<string>("");
+  const [selectedPlan, setSelectedPlan] = useState<{ name: string; price: string } | null>(null);
   const { toast } = useToast();
+  const { createSubscription } = useSubscriptions();
 
   const pixCode = "00020126330014BR.GOV.BCB.PIX0111123456789015204000053039865802BR5913Barber Manager6009Sao Paulo62070503***6304ABCD";
 
-  const handlePlanSelect = (planName: string) => {
-    setSelectedPlan(planName);
+  const handlePlanSelect = (planName: string, planPrice: string) => {
+    setSelectedPlan({ name: planName, price: planPrice });
     setIsPaymentModalOpen(true);
   };
 
@@ -25,6 +27,31 @@ const Plans = () => {
     toast({
       title: "Código copiado!",
       description: "O código PIX foi copiado para a área de transferência.",
+    });
+  };
+
+  const handleConfirmPayment = () => {
+    if (!selectedPlan) return;
+
+    const priceValue = parseFloat(selectedPlan.price.replace("R$ ", "").replace(",", "."));
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+    createSubscription.mutate({
+      plan_name: selectedPlan.name,
+      plan_price: priceValue,
+      status: "active",
+      payment_method: "pix",
+      payment_date: new Date().toISOString(),
+      next_payment_date: nextMonth.toISOString(),
+      invoice_url: null,
+      transaction_id: `PIX-${Date.now()}`,
+    });
+
+    setIsPaymentModalOpen(false);
+    toast({
+      title: "Pagamento confirmado!",
+      description: "Sua assinatura foi ativada com sucesso.",
     });
   };
 
@@ -130,7 +157,7 @@ const Plans = () => {
                   className="w-full mt-auto"
                   variant={plan.popular ? "default" : "outline"}
                   size="lg"
-                  onClick={() => handlePlanSelect(plan.name)}
+                  onClick={() => handlePlanSelect(plan.name, plan.price)}
                 >
                   {plan.popular ? "Assinar Agora" : "Escolher Plano"}
                 </Button>
@@ -156,7 +183,7 @@ const Plans = () => {
             <DialogHeader>
               <DialogTitle>Pagamento via PIX</DialogTitle>
               <DialogDescription>
-                Plano selecionado: {selectedPlan}
+                Plano selecionado: {selectedPlan?.name}
               </DialogDescription>
             </DialogHeader>
             
@@ -200,6 +227,15 @@ const Plans = () => {
                   Clique no botão para copiar o código PIX
                 </p>
               </div>
+
+              {/* Confirm Payment Button */}
+              <Button 
+                className="w-full" 
+                onClick={handleConfirmPayment}
+                disabled={createSubscription.isPending}
+              >
+                {createSubscription.isPending ? "Processando..." : "Confirmar Pagamento"}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

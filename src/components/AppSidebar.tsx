@@ -1,4 +1,4 @@
-import { Home, Users, Calendar, DollarSign, Package, UserCircle, Scissors, FileText, CreditCard } from "lucide-react";
+import { Home, Users, Calendar, DollarSign, Package, UserCircle, Scissors, FileText, CreditCard, Receipt } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 
@@ -22,6 +22,7 @@ const menuItems = [
   { title: "Produtos", url: "/produtos", icon: Package },
   { title: "Relatórios", url: "/relatorios", icon: FileText },
   { title: "Planos", url: "/planos", icon: CreditCard },
+  { title: "Pagamentos", url: "/pagamentos", icon: Receipt },
   { title: "Perfil", url: "/perfil", icon: UserCircle },
 ];
 

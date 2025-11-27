@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.check-subscription-renewals]
 verify_jwt = false
+
+[functions.create-appointment-n8n]
+verify_jwt = false

@@ -7,6 +7,7 @@ import { Plus, Calendar, Clock, User, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { AppointmentDetailsModal } from "@/components/appointments/AppointmentDetailsModal";
 import { useAppointments } from "@/hooks/useAppointments";
+import { formatCurrency } from "@/lib/formatters";
 
 const Appointments = () => {
   const { data: appointments, isLoading } = useAppointments();
@@ -84,7 +85,7 @@ const Appointments = () => {
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <div className="text-lg font-bold text-foreground">
-                        R$ {(appointment.services?.price || 0).toFixed(2)}
+                        {formatCurrency(appointment.services?.price || 0)}
                       </div>
                       <Badge className={getStatusColor(appointment.status)}>
                         {appointment.status}

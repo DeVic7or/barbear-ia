@@ -7,6 +7,7 @@ import { AppointmentsChart } from "@/components/dashboard/AppointmentsChart";
 import { BarbersList } from "@/components/dashboard/BarbersList";
 import { PeriodFilter } from "@/components/dashboard/PeriodFilter";
 import { useBarberCommissions } from "@/hooks/useBarberCommissions";
+import { formatCurrency } from "@/lib/formatters";
 
 // Mock data - substituir com dados reais da API
 const mockChartData = [
@@ -57,13 +58,13 @@ const Index = () => {
           />
           <StatsCard
             title="Faturamento Total"
-            value={`R$ ${totalRevenue.toFixed(2)}`}
+            value={formatCurrency(totalRevenue)}
             icon={DollarSign}
             trend={{ value: 8, isPositive: true }}
           />
           <StatsCard
             title="Total em Comissões"
-            value={`R$ ${totalCommission.toFixed(2)}`}
+            value={formatCurrency(totalCommission)}
             icon={TrendingUp}
             trend={{ value: 15, isPositive: true }}
           />

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { DollarSign, TrendingUp, CreditCard, Wallet } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from "recharts";
+import { formatCurrency } from "@/lib/formatters";
 
 const mockRevenueData = [
   { month: "Jan", revenue: 8500, expenses: 3200 },
@@ -30,25 +31,25 @@ const Revenue = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatsCard
             title="Faturamento Total"
-            value={`R$ ${totalRevenue.toFixed(2)}`}
+            value={formatCurrency(totalRevenue)}
             icon={DollarSign}
             trend={{ value: 12, isPositive: true }}
           />
           <StatsCard
             title="Lucro Líquido"
-            value={`R$ ${netProfit.toFixed(2)}`}
+            value={formatCurrency(netProfit)}
             icon={TrendingUp}
             trend={{ value: 8, isPositive: true }}
           />
           <StatsCard
             title="Ticket Médio"
-            value={`R$ ${avgTicket.toFixed(2)}`}
+            value={formatCurrency(avgTicket)}
             icon={CreditCard}
             description="Por atendimento"
           />
           <StatsCard
             title="Despesas"
-            value={`R$ ${totalExpenses.toFixed(2)}`}
+            value={formatCurrency(totalExpenses)}
             icon={Wallet}
             trend={{ value: 3, isPositive: false }}
           />
@@ -80,6 +81,7 @@ const Revenue = () => {
                     borderRadius: '8px',
                   }}
                   labelStyle={{ color: 'hsl(var(--foreground))' }}
+                  formatter={(value: number) => formatCurrency(value)}
                 />
                 <Legend />
                 <Bar dataKey="revenue" name="Receita" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />

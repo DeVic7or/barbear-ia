@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { formatCurrency } from "@/lib/formatters";
 
 interface Barber {
   id: string;
@@ -44,10 +45,10 @@ export function BarbersList({ barbers }: BarbersListProps) {
               </div>
               <div className="text-right space-y-1">
                 <div className="text-lg font-bold text-foreground">
-                  R$ {barber.commission.toFixed(2)}
+                  {formatCurrency(barber.commission)}
                 </div>
                 <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20">
-                  R$ {barber.revenue.toFixed(2)} faturado
+                  {formatCurrency(barber.revenue)} faturado
                 </Badge>
               </div>
             </div>

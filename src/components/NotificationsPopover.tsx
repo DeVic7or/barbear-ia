@@ -38,27 +38,28 @@ export const NotificationsPopover = () => {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          <h3 className="font-semibold text-foreground">Notificações</h3>
+      <PopoverContent className="w-[calc(100vw-2rem)] max-w-sm sm:w-80 p-0 z-50" align="end">
+        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border bg-background">
+          <h3 className="font-semibold text-foreground text-sm sm:text-base">Notificações</h3>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => markAllAsRead.mutate()}
               disabled={markAllAsRead.isPending}
+              className="text-xs sm:text-sm h-auto py-1 px-2"
             >
-              Marcar todas como lidas
+              Marcar lidas
             </Button>
           )}
         </div>
         
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[60vh] max-h-[400px]">
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-4">
               <Bell className="h-12 w-12 text-muted-foreground mb-2" />
               <p className="text-sm text-muted-foreground text-center">
-                Nenhuma notificação no momento
+                Nenhuma notificação
               </p>
             </div>
           ) : (
@@ -67,28 +68,28 @@ export const NotificationsPopover = () => {
                 <button
                   key={notification.id}
                   onClick={() => !notification.read && markAsRead.mutate(notification.id)}
-                  className={`w-full text-left p-4 hover:bg-muted/50 transition-colors ${
+                  className={`w-full text-left p-3 sm:p-4 hover:bg-muted/50 transition-colors ${
                     !notification.read ? 'bg-muted/30' : ''
                   }`}
                 >
-                  <div className="flex items-start gap-3">
-                    <span className="text-2xl flex-shrink-0">
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <span className="text-xl sm:text-2xl flex-shrink-0">
                       {getNotificationIcon(notification.type)}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <h4 className="font-medium text-sm text-foreground">
+                        <h4 className="font-medium text-xs sm:text-sm text-foreground line-clamp-2">
                           {notification.title}
                         </h4>
                         {!notification.read && (
                           <div className="h-2 w-2 bg-primary rounded-full flex-shrink-0 mt-1" />
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1 break-words">
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-3">
                         {notification.message}
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">
-                        {format(new Date(notification.created_at), "dd 'de' MMM 'às' HH:mm", {
+                        {format(new Date(notification.created_at), "dd/MM 'às' HH:mm", {
                           locale: ptBR,
                         })}
                       </p>

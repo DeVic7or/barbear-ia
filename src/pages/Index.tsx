@@ -36,11 +36,11 @@ const Index = () => {
   return (
     <Layout>
       <WelcomeDialog />
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="container mx-auto px-4 py-6 sm:py-8 space-y-6 sm:space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Visão geral do desempenho da barbearia</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">Visão geral do desempenho da barbearia</p>
         </div>
 
         {/* Current Plan Banner */}
@@ -56,7 +56,7 @@ const Index = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <StatsCard
             title="Total de Agendamentos"
             value={totalAppointments}

@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 
 const Revenue = () => {
   // Buscar agendamentos concluídos com todos os serviços e produtos
-  const { data: appointments } = useQuery({
+  const { data: appointments, isLoading } = useQuery({
     queryKey: ["completed-appointments"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -28,7 +28,7 @@ const Revenue = () => {
             quantity,
             products (price)
           ),
-          barbers (
+          barbers!appointments_barber_id_fkey (
             name,
             commission_percentage
           )
@@ -36,7 +36,12 @@ const Revenue = () => {
         .eq("status", "Concluído")
         .order("appointment_date", { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching appointments:", error);
+        throw error;
+      }
+      
+      console.log("Appointments data:", data);
       return data;
     },
   });
@@ -92,7 +97,7 @@ const Revenue = () => {
 
   // Calcular receita por barbeiro
   const getBarberRevenue = () => {
-    if (!appointments) return [];
+    if (!appointments || appointments.length === 0) return [];
 
     const barberMap = new Map<string, { 
       id: string;
@@ -104,7 +109,8 @@ const Revenue = () => {
     }>();
 
     appointments.forEach((appointment: any) => {
-      if (!appointment.barber_id || !appointment.barbers) return;
+      // Pular se não tiver barbeiro associado
+      if (!appointment.barber_id) return;
 
       let appointmentTotal = 0;
 
@@ -130,8 +136,12 @@ const Revenue = () => {
       }
 
       const barberId = appointment.barber_id;
+      const barberData = appointment.barbers;
       const existing = barberMap.get(barberId);
-      const commissionPercentage = Number(appointment.barbers.commission_percentage) || 0;
+      
+      // Usar dados do barbeiro ou valores padrão
+      const barberName = barberData?.name || `Barbeiro ${barberId.substring(0, 8)}`;
+      const commissionPercentage = barberData?.commission_percentage ? Number(barberData.commission_percentage) : 0;
       const commissionAmount = (appointmentTotal * commissionPercentage) / 100;
 
       if (existing) {
@@ -139,8 +149,6 @@ const Revenue = () => {
         existing.appointments += 1;
         existing.commission += commissionAmount;
       } else {
-        // Pegar o nome do barbeiro do banco
-        const barberName = appointment.barbers?.name || 'Barbeiro';
         barberMap.set(barberId, {
           id: barberId,
           name: barberName,
@@ -152,7 +160,9 @@ const Revenue = () => {
       }
     });
 
-    return Array.from(barberMap.values()).sort((a, b) => b.revenue - a.revenue);
+    const result = Array.from(barberMap.values()).sort((a, b) => b.revenue - a.revenue);
+    console.log("Barber revenue data:", result);
+    return result;
   };
 
   const barberRevenue = getBarberRevenue();
@@ -279,7 +289,11 @@ const Revenue = () => {
               <CardTitle className="text-foreground">Receita por Barbeiro</CardTitle>
             </CardHeader>
             <CardContent>
-              {barberRevenue.length > 0 ? (
+              {isLoading ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Carregando...
+                </div>
+              ) : barberRevenue.length > 0 ? (
                 <div className="space-y-4">
                   {barberRevenue.map((barber) => (
                     <div 

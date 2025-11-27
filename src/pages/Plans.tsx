@@ -73,8 +73,8 @@ const Plans = () => {
               key={plan.name}
               className={
                 plan.popular
-                  ? "border-primary shadow-lg relative"
-                  : "border-border/40"
+                  ? "border-primary shadow-lg relative flex flex-col"
+                  : "border-border/40 flex flex-col"
               }
             >
               {plan.popular && (
@@ -96,8 +96,8 @@ const Plans = () => {
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-4">
-                <ul className="space-y-3">
+              <CardContent className="space-y-4 flex-grow flex flex-col">
+                <ul className="space-y-3 flex-grow">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2">
                       <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
@@ -107,7 +107,7 @@ const Plans = () => {
                 </ul>
 
                 <Button
-                  className="w-full"
+                  className="w-full mt-auto"
                   variant={plan.popular ? "default" : "outline"}
                   size="lg"
                 >

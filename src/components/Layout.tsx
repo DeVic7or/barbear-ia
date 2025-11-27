@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { AIChatbot } from "@/components/AIChatbot";
 import { Menu, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,6 +52,7 @@ export function Layout({ children }: LayoutProps) {
             {children}
           </main>
         </div>
+        <AIChatbot />
       </div>
     </SidebarProvider>
   );

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Layout } from "@/components/Layout";
 import { useClients, useClientDetails } from "@/hooks/useClients";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -17,27 +18,40 @@ const Clients = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <h1 className="text-3xl font-bold mb-6">Clientes</h1>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-32" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-20 w-full" />
-            </CardContent>
-          </Card>
+      <Layout>
+        <div className="container mx-auto px-4 py-6 sm:py-8 space-y-6">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Clientes</h1>
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+              Gerenciar e visualizar informações dos clientes
+            </p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-32" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-20 w-full" />
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 text-foreground">Clientes</h1>
+    <Layout>
+      <div className="container mx-auto px-4 py-6 sm:py-8 space-y-6">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Clientes</h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+            Gerenciar e visualizar informações dos clientes
+          </p>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Lista de Clientes */}
         <Card className="lg:col-span-1">
           <CardHeader>
@@ -279,7 +293,8 @@ const Clients = () => {
           ) : null}
         </div>
       </div>
-    </div>
+      </div>
+    </Layout>
   );
 };
 

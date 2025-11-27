@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatCurrency } from "@/lib/formatters";
 import {
   Dialog,
   DialogContent,
@@ -106,7 +107,7 @@ export function AppointmentDetailsModal({
 
       toast({
         title: "Agendamento finalizado!",
-        description: `Total: R$ ${totalPrice.toFixed(2)}`,
+        description: `Total: ${formatCurrency(totalPrice)}`,
       });
       
       setAdditionalServiceIds([]);
@@ -189,7 +190,7 @@ export function AppointmentDetailsModal({
               <div className="flex justify-between items-center p-3 bg-secondary/50 rounded-lg">
                 <span>{appointment.services?.name || 'N/A'}</span>
                 <span className="font-semibold">
-                  R$ {mainServicePrice.toFixed(2)}
+                  {formatCurrency(mainServicePrice)}
                 </span>
               </div>
             </div>
@@ -208,7 +209,7 @@ export function AppointmentDetailsModal({
                     <span>{service.name}</span>
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">
-                        R$ {Number(service.price).toFixed(2)}
+                        {formatCurrency(Number(service.price))}
                       </span>
                       <Button
                         variant="ghost"
@@ -237,7 +238,7 @@ export function AppointmentDetailsModal({
                       className="gap-1"
                     >
                       <Plus className="h-3 w-3" />
-                      {service.name} - R$ {Number(service.price).toFixed(2)}
+                      {service.name} - {formatCurrency(Number(service.price))}
                     </Button>
                   ))}
               </div>
@@ -257,7 +258,7 @@ export function AppointmentDetailsModal({
                     <span>{product.name}</span>
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">
-                        R$ {Number(product.price).toFixed(2)}
+                        {formatCurrency(Number(product.price))}
                       </span>
                       <Button
                         variant="ghost"
@@ -282,7 +283,7 @@ export function AppointmentDetailsModal({
                       className="gap-1"
                     >
                       <Plus className="h-3 w-3" />
-                      {product.name} - R$ {Number(product.price).toFixed(2)}
+                      {product.name} - {formatCurrency(Number(product.price))}
                     </Button>
                   ))}
               </div>
@@ -296,7 +297,7 @@ export function AppointmentDetailsModal({
                 <DollarSign className="h-5 w-5" />
                 <span>Total</span>
               </div>
-              <span>R$ {totalPrice.toFixed(2)}</span>
+              <span>{formatCurrency(totalPrice)}</span>
             </div>
           </div>
 
@@ -347,7 +348,7 @@ export function AppointmentDetailsModal({
                 )}
                 <div className="flex justify-between text-lg font-bold pt-2 border-t">
                   <span>Total:</span>
-                  <span>R$ {totalPrice.toFixed(2)}</span>
+                  <span>{formatCurrency(totalPrice)}</span>
                 </div>
               </div>
             </AlertDialogDescription>

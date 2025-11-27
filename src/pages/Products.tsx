@@ -9,6 +9,7 @@ import { ProductFormDialog } from "@/components/products/ProductFormDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { formatCurrency } from "@/lib/formatters";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -180,7 +181,7 @@ const Products = () => {
                 <CardContent className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-2xl font-bold text-foreground">
-                      R$ {product.price.toFixed(2)}
+                      {formatCurrency(product.price)}
                     </span>
                     <Badge className={getStatusColor(product.stock_quantity)}>
                       {getStatusText(product.stock_quantity)}

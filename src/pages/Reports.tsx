@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useReports } from "@/hooks/useReports";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingUp, TrendingDown, Clock, Package, Users, Calendar } from "lucide-react";
+import { formatCurrency } from "@/lib/formatters";
 import {
   BarChart,
   Bar,
@@ -74,13 +75,13 @@ const Reports = () => {
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">Receita Total</p>
                 <p className="text-3xl font-bold text-foreground">
-                  R$ {reports?.completedAppointments.totalRevenue.toFixed(2) || "0.00"}
+                  {formatCurrency(reports?.completedAppointments.totalRevenue || 0)}
                 </p>
               </div>
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">Ticket Médio</p>
                 <p className="text-3xl font-bold text-foreground">
-                  R$ {reports?.completedAppointments.averageTicket.toFixed(2) || "0.00"}
+                  {formatCurrency(reports?.completedAppointments.averageTicket || 0)}
                 </p>
               </div>
             </div>
@@ -122,7 +123,7 @@ const Reports = () => {
                           }}
                           formatter={(value: number, name: string) => {
                             if (name === 'quantity') return [value, 'Quantidade'];
-                            if (name === 'revenue') return [`R$ ${value.toFixed(2)}`, 'Receita'];
+                            if (name === 'revenue') return [formatCurrency(value), 'Receita'];
                             return [value, name];
                           }}
                         />
@@ -157,7 +158,7 @@ const Reports = () => {
                             </div>
                           </div>
                           <p className="font-semibold text-foreground">
-                            R$ {product.revenue.toFixed(2)}
+                            {formatCurrency(product.revenue)}
                           </p>
                         </div>
                       ))}
@@ -180,7 +181,7 @@ const Reports = () => {
                             </div>
                           </div>
                           <p className="font-semibold text-foreground">
-                            R$ {product.revenue.toFixed(2)}
+                            {formatCurrency(product.revenue)}
                           </p>
                         </div>
                       ))}
@@ -234,7 +235,7 @@ const Reports = () => {
                           }}
                           formatter={(value: number, name: string, props: any) => {
                             return [
-                              `${value} agendamentos - R$ ${props.payload.revenue.toFixed(2)}`,
+                              `${value} agendamentos - ${formatCurrency(props.payload.revenue)}`,
                               props.payload.name
                             ];
                           }}
@@ -261,7 +262,7 @@ const Reports = () => {
                             </div>
                           </div>
                           <p className="font-semibold text-foreground">
-                            R$ {service.revenue.toFixed(2)}
+                            {formatCurrency(service.revenue)}
                           </p>
                         </div>
                       ))}
@@ -284,7 +285,7 @@ const Reports = () => {
                             </div>
                           </div>
                           <p className="font-semibold text-foreground">
-                            R$ {service.revenue.toFixed(2)}
+                            {formatCurrency(service.revenue)}
                           </p>
                         </div>
                       ))}
@@ -330,7 +331,7 @@ const Reports = () => {
                           }}
                           formatter={(value: number, name: string) => {
                             if (name === 'appointments') return [value, 'Agendamentos'];
-                            if (name === 'revenue') return [`R$ ${value.toFixed(2)}`, 'Receita'];
+                            if (name === 'revenue') return [formatCurrency(value), 'Receita'];
                             return [value, name];
                           }}
                         />
@@ -365,7 +366,7 @@ const Reports = () => {
                             </div>
                           </div>
                           <p className="font-semibold text-foreground">
-                            R$ {barber.revenue.toFixed(2)}
+                            {formatCurrency(barber.revenue)}
                           </p>
                         </div>
                       ))}
@@ -388,7 +389,7 @@ const Reports = () => {
                             </div>
                           </div>
                           <p className="font-semibold text-foreground">
-                            R$ {barber.revenue.toFixed(2)}
+                            {formatCurrency(barber.revenue)}
                           </p>
                         </div>
                       ))}

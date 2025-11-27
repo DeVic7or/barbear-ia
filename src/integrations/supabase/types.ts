@@ -94,6 +94,7 @@ export type Database = {
           appointment_date: string
           appointment_time: string
           barber_id: string | null
+          client_id: string | null
           client_name: string
           client_phone: string | null
           created_at: string
@@ -107,6 +108,7 @@ export type Database = {
           appointment_date: string
           appointment_time: string
           barber_id?: string | null
+          client_id?: string | null
           client_name: string
           client_phone?: string | null
           created_at?: string
@@ -120,6 +122,7 @@ export type Database = {
           appointment_date?: string
           appointment_time?: string
           barber_id?: string | null
+          client_id?: string | null
           client_name?: string
           client_phone?: string | null
           created_at?: string
@@ -135,6 +138,13 @@ export type Database = {
             columns: ["barber_id"]
             isOneToOne: false
             referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
@@ -171,6 +181,39 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          birthday: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          birthday?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          birthday?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
           phone?: string
           updated_at?: string
         }

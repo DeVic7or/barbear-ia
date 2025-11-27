@@ -3,36 +3,87 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Mail, Phone, Edit } from "lucide-react";
+import { Plus, Phone, Edit, Percent } from "lucide-react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { toast } from "@/hooks/use-toast";
 
-const mockBarbers = [
-  {
-    id: "1",
-    name: "Carlos Silva",
-    email: "carlos@example.com",
-    phone: "(11) 98765-4321",
-    specialties: ["Corte", "Barba", "Degradê"],
-    status: "Ativo",
-  },
-  {
-    id: "2",
-    name: "João Santos",
-    email: "joao@example.com",
-    phone: "(11) 98765-4322",
-    specialties: ["Corte", "Barba"],
-    status: "Ativo",
-  },
-  {
-    id: "3",
-    name: "Pedro Oliveira",
-    email: "pedro@example.com",
-    phone: "(11) 98765-4323",
-    specialties: ["Corte", "Degradê", "Químicas"],
-    status: "Ativo",
-  },
-];
+const barberSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório").max(100),
+  phone: z.string().min(1, "Telefone é obrigatório").max(20),
+  commission_percentage: z.coerce.number().min(0, "Comissão deve ser no mínimo 0%").max(100, "Comissão deve ser no máximo 100%"),
+});
+
+type BarberFormData = z.infer<typeof barberSchema>;
 
 const Barbers = () => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  const form = useForm<BarberFormData>({
+    resolver: zodResolver(barberSchema),
+    defaultValues: {
+      name: "",
+      phone: "",
+      commission_percentage: 0,
+    },
+  });
+
+  const { data: barbers, isLoading } = useQuery({
+    queryKey: ["barbers"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("barbers")
+        .select("*")
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const addBarberMutation = useMutation({
+    mutationFn: async (data: BarberFormData) => {
+      const { error } = await supabase
+        .from("barbers")
+        .insert([{
+          name: data.name,
+          phone: data.phone,
+          commission_percentage: data.commission_percentage,
+        }]);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["barbers"] });
+      toast({
+        title: "Sucesso!",
+        description: "Barbeiro adicionado com sucesso.",
+      });
+      setIsDialogOpen(false);
+      form.reset();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível adicionar o barbeiro. Tente novamente.",
+        variant: "destructive",
+      });
+      console.error(error);
+    },
+  });
+
+  const onSubmit = (data: BarberFormData) => {
+    addBarberMutation.mutate(data);
+  };
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8 space-y-8">
@@ -41,56 +92,119 @@ const Barbers = () => {
             <h1 className="text-3xl font-bold text-foreground">Barbeiros</h1>
             <p className="text-muted-foreground mt-1">Gerencie sua equipe de profissionais</p>
           </div>
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Adicionar Barbeiro
-          </Button>
+          
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Adicionar Barbeiro
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Adicionar Novo Barbeiro</DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nome completo" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Telefone</FormLabel>
+                        <FormControl>
+                          <Input placeholder="(00) 00000-0000" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="commission_percentage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Comissão (%)</FormLabel>
+                        <FormControl>
+                          <Input type="number" min="0" max="100" step="0.01" placeholder="0.00" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit" disabled={addBarberMutation.isPending}>
+                      {addBarberMutation.isPending ? "Salvando..." : "Salvar"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {mockBarbers.map((barber) => (
-            <Card key={barber.id} className="border-border/40 bg-card/50 backdrop-blur hover:bg-card/80 transition-all">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-16 w-16 border-2 border-primary/20">
-                      <AvatarImage src="" alt={barber.name} />
-                      <AvatarFallback className="bg-primary/10 text-primary text-lg">
-                        {barber.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <CardTitle className="text-lg">{barber.name}</CardTitle>
-                      <Badge variant="secondary" className="mt-1 bg-primary/10 text-primary">
-                        {barber.status}
-                      </Badge>
+        {isLoading ? (
+          <div className="text-center py-8 text-muted-foreground">Carregando...</div>
+        ) : barbers && barbers.length > 0 ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {barbers.map((barber) => (
+              <Card key={barber.id} className="border-border/40 bg-card/50 backdrop-blur hover:bg-card/80 transition-all">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-16 w-16 border-2 border-primary/20">
+                        <AvatarImage src="" alt={barber.name} />
+                        <AvatarFallback className="bg-primary/10 text-primary text-lg">
+                          {barber.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <CardTitle className="text-lg">{barber.name}</CardTitle>
+                        <Badge variant="secondary" className="mt-1 bg-primary/10 text-primary">
+                          Ativo
+                        </Badge>
+                      </div>
                     </div>
+                    <Button variant="ghost" size="icon" className="hover:bg-secondary/80">
+                      <Edit className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <Button variant="ghost" size="icon" className="hover:bg-secondary/80">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Mail className="h-4 w-4" />
-                  <span>{barber.email}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Phone className="h-4 w-4" />
-                  <span>{barber.phone}</span>
-                </div>
-                <div className="flex flex-wrap gap-2 pt-2">
-                  {barber.specialties.map((specialty) => (
-                    <Badge key={specialty} variant="outline">
-                      {specialty}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Phone className="h-4 w-4" />
+                    <span>{barber.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Percent className="h-4 w-4" />
+                    <span>Comissão: {barber.commission_percentage}%</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Nenhum barbeiro cadastrado ainda.</p>
+            <p className="text-sm text-muted-foreground mt-2">Clique em "Adicionar Barbeiro" para começar.</p>
+          </div>
+        )}
       </div>
     </Layout>
   );

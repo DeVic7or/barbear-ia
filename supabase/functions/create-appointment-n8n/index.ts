@@ -226,10 +226,53 @@ Deno.serve(async (req) => {
       console.log('Barber is available, proceeding with appointment creation');
     }
 
+    // Find or create client
+    let clientId = null;
+    
+    if (payload.client_phone) {
+      console.log('Checking for existing client with phone:', payload.client_phone);
+      
+      // Try to find existing client by phone
+      const { data: existingClient, error: clientSearchError } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('phone', payload.client_phone.trim())
+        .single();
+      
+      if (clientSearchError && clientSearchError.code !== 'PGRST116') {
+        console.error('Error searching for client:', clientSearchError);
+      }
+      
+      if (existingClient) {
+        console.log('Found existing client:', existingClient.id);
+        clientId = existingClient.id;
+      } else {
+        console.log('Creating new client...');
+        
+        // Create new client
+        const { data: newClient, error: clientCreateError } = await supabase
+          .from('clients')
+          .insert({
+            name: payload.client_name.trim(),
+            phone: payload.client_phone.trim(),
+          })
+          .select('id')
+          .single();
+        
+        if (clientCreateError) {
+          console.error('Error creating client:', clientCreateError);
+        } else {
+          console.log('Created new client:', newClient.id);
+          clientId = newClient.id;
+        }
+      }
+    }
+
     // Prepare appointment data
     const appointmentData = {
       client_name: payload.client_name.trim(),
       client_phone: payload.client_phone?.trim() || null,
+      client_id: clientId,
       appointment_date: payload.appointment_date,
       appointment_time: payload.appointment_time,
       barber_id: payload.barber_id || null,

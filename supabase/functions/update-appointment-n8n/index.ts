@@ -283,6 +283,46 @@ Deno.serve(async (req) => {
       updateData.client_phone = payload.client_phone?.trim() || null;
     }
 
+    // Find or create client if client_phone is being updated
+    if (payload.client_phone !== undefined && payload.client_phone) {
+      console.log('Checking for existing client with phone:', payload.client_phone);
+      
+      // Try to find existing client by phone
+      const { data: existingClient, error: clientSearchError } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('phone', payload.client_phone.trim())
+        .single();
+      
+      if (clientSearchError && clientSearchError.code !== 'PGRST116') {
+        console.error('Error searching for client:', clientSearchError);
+      }
+      
+      if (existingClient) {
+        console.log('Found existing client:', existingClient.id);
+        updateData.client_id = existingClient.id;
+      } else if (payload.client_name) {
+        console.log('Creating new client...');
+        
+        // Create new client
+        const { data: newClient, error: clientCreateError } = await supabase
+          .from('clients')
+          .insert({
+            name: payload.client_name.trim(),
+            phone: payload.client_phone.trim(),
+          })
+          .select('id')
+          .single();
+        
+        if (clientCreateError) {
+          console.error('Error creating client:', clientCreateError);
+        } else {
+          console.log('Created new client:', newClient.id);
+          updateData.client_id = newClient.id;
+        }
+      }
+    }
+
     // Check if there's anything to update
     if (Object.keys(updateData).length === 0) {
       console.error('No fields to update');

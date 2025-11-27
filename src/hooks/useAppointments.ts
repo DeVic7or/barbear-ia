@@ -6,6 +6,7 @@ export interface Appointment {
   id: string;
   client_name: string;
   client_phone: string | null;
+  client_id: string | null;
   barber_id: string | null;
   service_id: string | null;
   appointment_date: string;
@@ -18,6 +19,12 @@ export interface Appointment {
   services?: {
     name: string;
     price: number;
+  };
+  clients?: {
+    id: string;
+    name: string;
+    phone: string;
+    email: string | null;
   };
 }
 
@@ -57,7 +64,8 @@ export const useAppointments = () => {
         .select(`
           *,
           barbers(name),
-          services(name, price)
+          services(name, price),
+          clients(id, name, phone, email)
         `)
         .order("appointment_date", { ascending: true })
         .order("appointment_time", { ascending: true });

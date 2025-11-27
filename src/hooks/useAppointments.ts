@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 export interface Appointment {
   id: string;
@@ -21,6 +22,33 @@ export interface Appointment {
 }
 
 export const useAppointments = () => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    console.log('Setting up realtime subscription for appointments');
+    
+    const channel = supabase
+      .channel('appointments-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'appointments'
+        },
+        (payload) => {
+          console.log('Realtime update received:', payload);
+          queryClient.invalidateQueries({ queryKey: ["appointments"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Cleaning up realtime subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   return useQuery({
     queryKey: ["appointments"],
     queryFn: async () => {

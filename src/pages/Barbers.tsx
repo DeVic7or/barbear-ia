@@ -27,6 +27,7 @@ type BarberFormData = z.infer<typeof barberSchema>;
 const Barbers = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [barberToDelete, setBarberToDelete] = useState<string | null>(null);
+  const [barberToEdit, setBarberToEdit] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const form = useForm<BarberFormData>({
@@ -82,6 +83,39 @@ const Barbers = () => {
     },
   });
 
+  const updateBarberMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: BarberFormData }) => {
+      const { error } = await supabase
+        .from("barbers")
+        .update({
+          name: data.name,
+          phone: data.phone,
+          commission_percentage: data.commission_percentage,
+        })
+        .eq("id", id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["barbers"] });
+      toast({
+        title: "Sucesso!",
+        description: "Barbeiro atualizado com sucesso.",
+      });
+      setIsDialogOpen(false);
+      setBarberToEdit(null);
+      form.reset();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o barbeiro. Tente novamente.",
+        variant: "destructive",
+      });
+      console.error(error);
+    },
+  });
+
   const deleteBarberMutation = useMutation({
     mutationFn: async (barberId: string) => {
       const { error } = await supabase
@@ -110,13 +144,33 @@ const Barbers = () => {
   });
 
   const onSubmit = (data: BarberFormData) => {
-    addBarberMutation.mutate(data);
+    if (barberToEdit) {
+      updateBarberMutation.mutate({ id: barberToEdit, data });
+    } else {
+      addBarberMutation.mutate(data);
+    }
   };
 
   const handleDeleteBarber = () => {
     if (barberToDelete) {
       deleteBarberMutation.mutate(barberToDelete);
     }
+  };
+
+  const handleEditBarber = (barber: any) => {
+    setBarberToEdit(barber.id);
+    form.reset({
+      name: barber.name,
+      phone: barber.phone,
+      commission_percentage: barber.commission_percentage,
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setBarberToEdit(null);
+    form.reset();
   };
 
   return (
@@ -137,7 +191,7 @@ const Barbers = () => {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Adicionar Novo Barbeiro</DialogTitle>
+                <DialogTitle>{barberToEdit ? "Editar Barbeiro" : "Adicionar Novo Barbeiro"}</DialogTitle>
               </DialogHeader>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -181,11 +235,11 @@ const Barbers = () => {
                     )}
                   />
                   <div className="flex justify-end gap-2 pt-4">
-                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    <Button type="button" variant="outline" onClick={handleCloseDialog}>
                       Cancelar
                     </Button>
-                    <Button type="submit" disabled={addBarberMutation.isPending}>
-                      {addBarberMutation.isPending ? "Salvando..." : "Salvar"}
+                    <Button type="submit" disabled={addBarberMutation.isPending || updateBarberMutation.isPending}>
+                      {(addBarberMutation.isPending || updateBarberMutation.isPending) ? "Salvando..." : "Salvar"}
                     </Button>
                   </div>
                 </form>
@@ -217,7 +271,12 @@ const Barbers = () => {
                       </div>
                     </div>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="hover:bg-secondary/80">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="hover:bg-secondary/80"
+                        onClick={() => handleEditBarber(barber)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button 

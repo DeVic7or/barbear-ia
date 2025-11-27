@@ -34,8 +34,8 @@ export function AppSidebar() {
     <Sidebar className={open ? "w-64" : "w-16"}>
       <SidebarContent>
         {/* Logo/Header */}
-        <div className="p-4 border-b border-border/40">
-          <div className="flex items-center gap-3">
+        <div className={open ? "p-4 border-b border-border/40" : "p-2 border-b border-border/40 flex justify-center"}>
+          <div className={open ? "flex items-center gap-3" : "flex items-center"}>
             <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
               <Scissors className="h-6 w-6 text-primary-foreground" />
             </div>
@@ -60,11 +60,17 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end
-                      className="hover:bg-secondary/80 transition-colors"
-                      activeClassName="bg-primary/10 text-primary font-medium border-l-4 border-primary"
+                      className={open 
+                        ? "hover:bg-secondary/80 transition-colors" 
+                        : "hover:bg-secondary/80 transition-colors flex justify-center"
+                      }
+                      activeClassName={open
+                        ? "bg-primary/10 text-primary font-medium border-l-4 border-primary"
+                        : "bg-primary/10 text-primary font-medium"
+                      }
                     >
-                      <item.icon className={open ? "mr-3 h-5 w-5" : "h-5 w-5"} />
-                      {open && <span>{item.title}</span>}
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      {open && <span className="ml-3">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

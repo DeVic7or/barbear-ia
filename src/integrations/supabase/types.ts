@@ -250,6 +250,27 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          first_login_shown: boolean
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          first_login_shown?: boolean
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          first_login_shown?: boolean
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           created_at: string

@@ -110,6 +110,52 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // Check for conflicts if barber_id is provided
+    if (payload.barber_id) {
+      console.log('Checking for appointment conflicts...');
+      
+      const { data: existingAppointments, error: conflictCheckError } = await supabase
+        .from('appointments')
+        .select('id, client_name')
+        .eq('barber_id', payload.barber_id)
+        .eq('appointment_date', payload.appointment_date)
+        .eq('appointment_time', payload.appointment_time)
+        .neq('status', 'Cancelado');
+
+      if (conflictCheckError) {
+        console.error('Error checking for conflicts:', conflictCheckError);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Error checking for appointment conflicts',
+            details: conflictCheckError.message,
+            success: false 
+          }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      if (existingAppointments && existingAppointments.length > 0) {
+        console.error('Appointment conflict detected:', existingAppointments[0]);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Horário já reservado para este barbeiro',
+            details: `Já existe um agendamento para ${payload.appointment_date} às ${payload.appointment_time} com este barbeiro`,
+            conflicting_appointment: existingAppointments[0],
+            success: false 
+          }),
+          { 
+            status: 409, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      console.log('No conflicts found, proceeding with appointment creation');
+    }
+
     // Prepare appointment data
     const appointmentData = {
       client_name: payload.client_name.trim(),

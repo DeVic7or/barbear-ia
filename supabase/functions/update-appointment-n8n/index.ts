@@ -107,6 +107,87 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Check for conflicts if updating barber_id, date, or time
+    const isUpdatingSchedule = 
+      payload.barber_id !== undefined || 
+      payload.appointment_date !== undefined || 
+      payload.appointment_time !== undefined;
+
+    if (isUpdatingSchedule) {
+      console.log('Checking for appointment conflicts...');
+      
+      // Get current appointment data to fill in missing values
+      const { data: currentAppointment, error: currentError } = await supabase
+        .from('appointments')
+        .select('barber_id, appointment_date, appointment_time')
+        .eq('id', payload.appointment_id)
+        .single();
+
+      if (currentError || !currentAppointment) {
+        console.error('Error fetching current appointment:', currentError);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Error fetching current appointment data',
+            success: false 
+          }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      // Use provided values or fall back to current values
+      const checkBarberId = payload.barber_id !== undefined ? payload.barber_id : currentAppointment.barber_id;
+      const checkDate = payload.appointment_date || currentAppointment.appointment_date;
+      const checkTime = payload.appointment_time || currentAppointment.appointment_time;
+
+      // Only check for conflicts if barber_id is set
+      if (checkBarberId) {
+        const { data: existingAppointments, error: conflictCheckError } = await supabase
+          .from('appointments')
+          .select('id, client_name')
+          .eq('barber_id', checkBarberId)
+          .eq('appointment_date', checkDate)
+          .eq('appointment_time', checkTime)
+          .neq('status', 'Cancelado')
+          .neq('id', payload.appointment_id); // Exclude current appointment
+
+        if (conflictCheckError) {
+          console.error('Error checking for conflicts:', conflictCheckError);
+          return new Response(
+            JSON.stringify({ 
+              error: 'Error checking for appointment conflicts',
+              details: conflictCheckError.message,
+              success: false 
+            }),
+            { 
+              status: 500, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          );
+        }
+
+        if (existingAppointments && existingAppointments.length > 0) {
+          console.error('Appointment conflict detected:', existingAppointments[0]);
+          return new Response(
+            JSON.stringify({ 
+              error: 'Horário já reservado para este barbeiro',
+              details: `Já existe um agendamento para ${checkDate} às ${checkTime} com este barbeiro`,
+              conflicting_appointment: existingAppointments[0],
+              success: false 
+            }),
+            { 
+              status: 409, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          );
+        }
+
+        console.log('No conflicts found, proceeding with appointment update');
+      }
+    }
+
     // Prepare update data
     const updateData: any = {};
     

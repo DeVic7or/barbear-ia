@@ -156,6 +156,76 @@ Deno.serve(async (req) => {
       console.log('No conflicts found, proceeding with appointment creation');
     }
 
+    // Check barber availability if barber_id is provided
+    if (payload.barber_id) {
+      console.log('Checking barber availability...');
+      
+      // Get the day of week from the appointment date (0 = Sunday, 6 = Saturday)
+      const appointmentDate = new Date(payload.appointment_date + 'T00:00:00');
+      const dayOfWeek = appointmentDate.getDay();
+      
+      const { data: availability, error: availabilityError } = await supabase
+        .from('user_availability')
+        .select('*')
+        .eq('user_id', payload.barber_id)
+        .eq('day_of_week', dayOfWeek)
+        .eq('is_active', true)
+        .single();
+
+      if (availabilityError && availabilityError.code !== 'PGRST116') {
+        console.error('Error checking availability:', availabilityError);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Error checking barber availability',
+            details: availabilityError.message,
+            success: false 
+          }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      if (!availability) {
+        console.error('Barber not available on this day');
+        return new Response(
+          JSON.stringify({ 
+            error: 'Barbeiro não disponível neste dia',
+            details: `O barbeiro não atende neste dia da semana`,
+            success: false 
+          }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      // Check if appointment time is within available hours
+      const appointmentTime = payload.appointment_time;
+      if (appointmentTime < availability.start_time || appointmentTime >= availability.end_time) {
+        console.error('Appointment time outside available hours');
+        return new Response(
+          JSON.stringify({ 
+            error: 'Horário fora do expediente',
+            details: `O barbeiro atende das ${availability.start_time.substring(0, 5)} às ${availability.end_time.substring(0, 5)} neste dia`,
+            available_hours: {
+              start: availability.start_time,
+              end: availability.end_time
+            },
+            success: false 
+          }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      console.log('Barber is available, proceeding with appointment creation');
+    }
+
     // Prepare appointment data
     const appointmentData = {
       client_name: payload.client_name.trim(),

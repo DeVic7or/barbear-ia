@@ -379,6 +379,44 @@ export type Database = {
         }
         Relationships: []
       }
+      user_breaks: {
+        Row: {
+          break_end_time: string
+          break_name: string
+          break_start_time: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_availability_id: string
+        }
+        Insert: {
+          break_end_time: string
+          break_name?: string
+          break_start_time: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_availability_id: string
+        }
+        Update: {
+          break_end_time?: string
+          break_name?: string
+          break_start_time?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_availability_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_breaks_user_availability_id_fkey"
+            columns: ["user_availability_id"]
+            isOneToOne: false
+            referencedRelation: "user_availability"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string

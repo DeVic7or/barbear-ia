@@ -1,6 +1,7 @@
-import { Home, Users, Calendar, DollarSign, Package, UserCircle, Scissors, FileText, CreditCard, Receipt } from "lucide-react";
+import { Home, Users, Calendar, DollarSign, Package, UserCircle, Scissors, FileText, CreditCard, Receipt, Shield } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
+import { useUserRole } from "@/hooks/useUserRole";
 
 import {
   Sidebar,
@@ -30,6 +31,7 @@ export function AppSidebar() {
   const { open } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
+  const { isAdmin } = useUserRole();
 
   const isActive = (path: string) => currentPath === path;
 
@@ -79,6 +81,36 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Admin Section */}
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel className={!open ? "sr-only" : ""}>
+              Administração
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <NavLink
+                    to="/admin"
+                    end
+                    className={open 
+                      ? "flex items-center px-4 py-3 hover:bg-secondary/80 transition-colors rounded-md" 
+                      : "flex items-center justify-center px-2 py-3 hover:bg-secondary/80 transition-colors rounded-md mx-auto w-12"
+                    }
+                    activeClassName={open
+                      ? "bg-primary/10 text-primary font-medium border-l-4 border-primary"
+                      : "bg-primary/10 text-primary font-medium"
+                    }
+                  >
+                    <Shield className="h-5 w-5 flex-shrink-0" />
+                    {open && <span className="ml-3">Admin</span>}
+                  </NavLink>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
     </Sidebar>
   );

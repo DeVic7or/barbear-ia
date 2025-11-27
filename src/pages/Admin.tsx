@@ -77,16 +77,16 @@ const Admin = () => {
 
   return (
     <Layout>
-      <div className="space-y-6 p-6">
+      <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard Administrativo</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard Administrativo</h1>
+          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
             Visão geral de todas as assinaturas e status de renovação
           </p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total de Assinaturas</CardTitle>
@@ -147,28 +147,71 @@ const Admin = () => {
         {/* Subscriptions List */}
         <Card>
           <CardHeader>
-            <CardTitle>Todas as Assinaturas</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-lg sm:text-xl">Todas as Assinaturas</CardTitle>
+            <CardDescription className="text-sm">
               Visão completa de todas as assinaturas no sistema
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {allSubscriptions.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  Nenhuma assinatura encontrada
+            {allSubscriptions.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground text-sm">
+                Nenhuma assinatura encontrada
+              </div>
+            ) : (
+              <>
+                {/* Mobile View - Cards */}
+                <div className="block md:hidden space-y-4">
+                  {allSubscriptions.map((subscription) => {
+                    const daysUntilRenewal = getDaysUntilRenewal(subscription.next_payment_date);
+                    const isExpiringSoon = daysUntilRenewal !== null && daysUntilRenewal <= 7 && daysUntilRenewal >= 0;
+                    
+                    return (
+                      <Card key={subscription.id} className={isExpiringSoon ? "border-destructive/50" : ""}>
+                        <CardContent className="p-4 space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <p className="font-semibold text-foreground">{subscription.plan_name}</p>
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {formatCurrency(Number(subscription.plan_price))}/mês
+                              </p>
+                            </div>
+                            {getStatusBadge(subscription.status)}
+                          </div>
+                          
+                          {subscription.next_payment_date && (
+                            <div className="text-sm">
+                              <p className="text-muted-foreground">Próxima renovação:</p>
+                              <p className="font-medium">
+                                {format(new Date(subscription.next_payment_date), "dd/MM/yyyy", { locale: ptBR })}
+                              </p>
+                            </div>
+                          )}
+                          
+                          {daysUntilRenewal !== null && (
+                            <div className={`text-sm font-medium ${
+                              isExpiringSoon ? 'text-destructive' : 'text-foreground'
+                            }`}>
+                              {daysUntilRenewal} dias restantes
+                              {isExpiringSoon && <AlertTriangle className="h-3 w-3 inline ml-1" />}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
+
+                {/* Desktop View - Table */}
+                <div className="hidden md:block overflow-x-auto -mx-6 px-6">
+                  <table className="w-full min-w-[800px]">
                     <thead>
                       <tr className="border-b border-border">
-                        <th className="text-left p-3 text-sm font-medium text-muted-foreground">Plano</th>
-                        <th className="text-left p-3 text-sm font-medium text-muted-foreground">Valor</th>
-                        <th className="text-left p-3 text-sm font-medium text-muted-foreground">Status</th>
-                        <th className="text-left p-3 text-sm font-medium text-muted-foreground">Próxima Renovação</th>
-                        <th className="text-left p-3 text-sm font-medium text-muted-foreground">Dias até Vencer</th>
-                        <th className="text-left p-3 text-sm font-medium text-muted-foreground">Criado em</th>
+                        <th className="text-left p-3 text-sm font-medium text-muted-foreground whitespace-nowrap">Plano</th>
+                        <th className="text-left p-3 text-sm font-medium text-muted-foreground whitespace-nowrap">Valor</th>
+                        <th className="text-left p-3 text-sm font-medium text-muted-foreground whitespace-nowrap">Status</th>
+                        <th className="text-left p-3 text-sm font-medium text-muted-foreground whitespace-nowrap">Próxima Renovação</th>
+                        <th className="text-left p-3 text-sm font-medium text-muted-foreground whitespace-nowrap">Dias até Vencer</th>
+                        <th className="text-left p-3 text-sm font-medium text-muted-foreground whitespace-nowrap">Criado em</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -222,8 +265,8 @@ const Admin = () => {
                     </tbody>
                   </table>
                 </div>
-              )}
-            </div>
+              </>
+            )}
           </CardContent>
         </Card>
 

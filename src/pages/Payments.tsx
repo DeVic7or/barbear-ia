@@ -60,10 +60,10 @@ const Payments = () => {
 
   return (
     <Layout>
-      <div className="space-y-6 p-6">
+      <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Histórico de Pagamentos</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Histórico de Pagamentos</h1>
+          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
             Visualize suas assinaturas e faturas
           </p>
         </div>
@@ -84,34 +84,34 @@ const Payments = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6">
+          <div className="grid gap-4 sm:gap-6">
             {subscriptions.map((subscription) => (
               <Card key={subscription.id} className="overflow-hidden">
-                <CardHeader className="bg-muted/50">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-xl">Plano {subscription.plan_name}</CardTitle>
-                      <CardDescription className="mt-1">
-                        Método de pagamento: {getPaymentMethodLabel(subscription.payment_method)}
+                <CardHeader className="bg-muted/50 p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-lg sm:text-xl">Plano {subscription.plan_name}</CardTitle>
+                      <CardDescription className="mt-1 text-sm">
+                        Método: {getPaymentMethodLabel(subscription.payment_method)}
                       </CardDescription>
                     </div>
                     {getStatusBadge(subscription.status)}
                   </div>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <CardContent className="p-4 sm:pt-6">
+                  <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">Valor</p>
-                      <p className="text-2xl font-bold text-foreground">
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-1">Valor</p>
+                      <p className="text-xl sm:text-2xl font-bold text-foreground">
                         {formatCurrency(Number(subscription.plan_price))}
                       </p>
                       <p className="text-xs text-muted-foreground">/mês</p>
                     </div>
 
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">Data do Pagamento</p>
-                      <p className="text-base font-medium text-foreground">
-                        {format(new Date(subscription.payment_date), "dd 'de' MMMM 'de' yyyy", {
+                      <p className="text-xs sm:text-sm text-muted-foreground mb-1">Data do Pagamento</p>
+                      <p className="text-sm sm:text-base font-medium text-foreground">
+                        {format(new Date(subscription.payment_date), "dd 'de' MMM 'de' yyyy", {
                           locale: ptBR,
                         })}
                       </p>
@@ -119,9 +119,9 @@ const Payments = () => {
 
                     {subscription.next_payment_date && (
                       <div>
-                        <p className="text-sm text-muted-foreground mb-1">Próximo Pagamento</p>
-                        <p className="text-base font-medium text-foreground">
-                          {format(new Date(subscription.next_payment_date), "dd 'de' MMMM 'de' yyyy", {
+                        <p className="text-xs sm:text-sm text-muted-foreground mb-1">Próximo Pagamento</p>
+                        <p className="text-sm sm:text-base font-medium text-foreground">
+                          {format(new Date(subscription.next_payment_date), "dd 'de' MMM 'de' yyyy", {
                             locale: ptBR,
                           })}
                         </p>
@@ -130,8 +130,8 @@ const Payments = () => {
 
                     {subscription.transaction_id && (
                       <div>
-                        <p className="text-sm text-muted-foreground mb-1">ID da Transação</p>
-                        <p className="text-xs font-mono text-foreground break-all">
+                        <p className="text-xs sm:text-sm text-muted-foreground mb-1">ID da Transação</p>
+                        <p className="text-[10px] sm:text-xs font-mono text-foreground break-all">
                           {subscription.transaction_id}
                         </p>
                       </div>

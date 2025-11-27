@@ -47,17 +47,17 @@ const Appointments = () => {
     <div
       key={appointment.id}
       onClick={() => setSelectedAppointment(appointment)}
-      className="flex items-center justify-between p-4 rounded-lg bg-secondary/50 border border-border/40 hover:bg-secondary/80 transition-all cursor-pointer"
+      className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg bg-secondary/50 border border-border/40 hover:bg-secondary/80 transition-all cursor-pointer"
     >
-      <div className="flex items-center gap-4 flex-1">
-        <Avatar className="h-12 w-12 border-2 border-primary/20">
-          <AvatarFallback className="bg-primary/10 text-primary">
+      <div className="flex items-center gap-3 sm:gap-4 w-full sm:flex-1">
+        <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-primary/20 flex-shrink-0">
+          <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm">
             {appointment.client_name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-foreground">{appointment.client_name}</h3>
-          <div className="flex flex-wrap gap-3 mt-1 text-sm text-muted-foreground">
+          <h3 className="font-semibold text-foreground text-sm sm:text-base">{appointment.client_name}</h3>
+          <div className="flex flex-wrap gap-2 sm:gap-3 mt-1 text-xs sm:text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <User className="h-3 w-3" />
               <span>{appointment.barbers?.name || 'N/A'}</span>

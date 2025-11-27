@@ -35,20 +35,20 @@ export function Layout({ children }: LayoutProps) {
       <div className="flex min-h-screen w-full">
         <AppSidebar />
         <div className="flex-1 flex flex-col w-full">
-          <header className="h-16 border-b border-border/40 bg-card/30 backdrop-blur-sm sticky top-0 z-10 flex items-center justify-between px-4">
+          <header className="h-14 sm:h-16 border-b border-border/40 bg-card/30 backdrop-blur-sm sticky top-0 z-10 flex items-center justify-between px-3 sm:px-4">
             <SidebarTrigger className="hover:bg-secondary/80 transition-colors">
               <Menu className="h-5 w-5" />
             </SidebarTrigger>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <NotificationsPopover />
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleLogout}
-                className="gap-2"
+                className="gap-1 sm:gap-2 h-9 px-2 sm:px-3"
               >
                 <LogOut className="h-4 w-4" />
-                Sair
+                <span className="hidden sm:inline">Sair</span>
               </Button>
             </div>
           </header>

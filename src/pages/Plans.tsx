@@ -106,15 +106,15 @@ const Plans = () => {
 
   return (
     <Layout>
-      <div className="space-y-8 p-6">
+      <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Planos e Preços</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Planos e Preços</h1>
+          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
             Escolha o plano ideal para sua barbearia
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {plans.map((plan) => (
             <Card
               key={plan.name}
@@ -125,30 +125,30 @@ const Plans = () => {
               }
             >
               {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-primary text-primary-foreground">
+                <div className="absolute -top-2.5 sm:-top-3 left-1/2 -translate-x-1/2">
+                  <Badge className="bg-primary text-primary-foreground text-xs sm:text-sm">
                     Mais Popular
                   </Badge>
                 </div>
               )}
               
-              <CardHeader>
-                <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                <CardDescription>{plan.description}</CardDescription>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold text-foreground">
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-xl sm:text-2xl">{plan.name}</CardTitle>
+                <CardDescription className="text-sm">{plan.description}</CardDescription>
+                <div className="mt-3 sm:mt-4">
+                  <span className="text-3xl sm:text-4xl font-bold text-foreground">
                     {plan.price}
                   </span>
-                  <span className="text-muted-foreground">{plan.period}</span>
+                  <span className="text-sm sm:text-base text-muted-foreground">{plan.period}</span>
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-4 flex-grow flex flex-col">
-                <ul className="space-y-3 flex-grow">
+              <CardContent className="space-y-4 flex-grow flex flex-col p-4 sm:p-6 pt-0">
+                <ul className="space-y-2 sm:space-y-3 flex-grow">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2">
-                      <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-foreground">{feature}</span>
+                      <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0 mt-0.5" />
+                      <span className="text-xs sm:text-sm text-foreground">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -167,31 +167,31 @@ const Plans = () => {
         </div>
 
         <Card className="bg-muted/50">
-          <CardHeader>
-            <CardTitle>Precisa de algo personalizado?</CardTitle>
-            <CardDescription>
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-lg sm:text-xl">Precisa de algo personalizado?</CardTitle>
+            <CardDescription className="text-sm">
               Entre em contato conosco para criar um plano sob medida para sua barbearia
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button variant="outline">Falar com Especialista</Button>
+          <CardContent className="p-4 sm:p-6 pt-0">
+            <Button variant="outline" className="w-full sm:w-auto">Falar com Especialista</Button>
           </CardContent>
         </Card>
 
         <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="w-[calc(100%-2rem)] max-w-md mx-auto">
             <DialogHeader>
-              <DialogTitle>Pagamento via PIX</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-lg sm:text-xl">Pagamento via PIX</DialogTitle>
+              <DialogDescription className="text-sm">
                 Plano selecionado: {selectedPlan?.name}
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* QR Code Mockup */}
               <div className="flex justify-center">
-                <div className="w-64 h-64 bg-background border-2 border-border rounded-lg flex items-center justify-center">
-                  <div className="w-56 h-56 bg-foreground/10 rounded grid grid-cols-8 gap-1 p-2">
+                <div className="w-48 h-48 sm:w-64 sm:h-64 bg-background border-2 border-border rounded-lg flex items-center justify-center">
+                  <div className="w-44 h-44 sm:w-56 sm:h-56 bg-foreground/10 rounded grid grid-cols-8 gap-1 p-2">
                     {Array.from({ length: 64 }).map((_, i) => (
                       <div
                         key={i}
@@ -206,19 +206,20 @@ const Plans = () => {
 
               {/* PIX Copia e Cola */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">
+                <label className="text-xs sm:text-sm font-medium text-foreground">
                   PIX Copia e Cola
                 </label>
                 <div className="flex gap-2">
                   <Input
                     readOnly
                     value={pixCode}
-                    className="font-mono text-xs"
+                    className="font-mono text-[10px] sm:text-xs"
                   />
                   <Button
                     size="icon"
                     variant="outline"
                     onClick={handleCopyPixCode}
+                    className="flex-shrink-0"
                   >
                     <Copy className="h-4 w-4" />
                   </Button>
@@ -233,6 +234,7 @@ const Plans = () => {
                 className="w-full" 
                 onClick={handleConfirmPayment}
                 disabled={createSubscription.isPending}
+                size="lg"
               >
                 {createSubscription.isPending ? "Processando..." : "Confirmar Pagamento"}
               </Button>

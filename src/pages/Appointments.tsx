@@ -1,153 +1,74 @@
-import { useState } from "react";
-import { DateRange } from "react-day-picker";
 import { Layout } from "@/components/Layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Plus } from "lucide-react";
-import { PeriodFilter } from "@/components/dashboard/PeriodFilter";
-import { KanbanColumn } from "@/components/appointments/KanbanColumn";
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import { AppointmentCard } from "@/components/appointments/AppointmentCard";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Plus, Calendar, Clock, User } from "lucide-react";
 
-interface Appointment {
-  id: string;
-  client: string;
-  barber: string;
-  service: string;
-  date: string;
-  time: string;
-  status: "agendado" | "em_execucao" | "executado";
-  price: number;
-}
-
-// Mock data
-const initialAppointments: Appointment[] = [
+const mockAppointments = [
   {
     id: "1",
-    client: "João Silva",
+    client: "João da Silva",
     barber: "Carlos Silva",
     service: "Corte + Barba",
-    date: "15/11/2024",
-    time: "09:00",
-    status: "agendado",
-    price: 50.0,
+    date: "2024-11-25",
+    time: "14:00",
+    status: "Confirmado",
+    price: 50,
   },
   {
     id: "2",
-    client: "Pedro Santos",
+    client: "Maria Santos",
     barber: "João Santos",
-    service: "Corte Degradê",
-    date: "15/11/2024",
-    time: "10:00",
-    status: "agendado",
-    price: 35.0,
+    service: "Corte",
+    date: "2024-11-25",
+    time: "15:00",
+    status: "Aguardando",
+    price: 35,
   },
   {
     id: "3",
-    client: "Lucas Oliveira",
+    client: "Pedro Costa",
     barber: "Pedro Oliveira",
-    service: "Barba",
-    date: "15/11/2024",
-    time: "11:00",
-    status: "em_execucao",
-    price: 25.0,
+    service: "Degradê",
+    date: "2024-11-25",
+    time: "16:00",
+    status: "Confirmado",
+    price: 40,
   },
   {
     id: "4",
-    client: "Rafael Costa",
-    barber: "Rafael Costa",
-    service: "Corte Social",
-    date: "15/11/2024",
-    time: "14:00",
-    status: "em_execucao",
-    price: 40.0,
-  },
-  {
-    id: "5",
-    client: "Marcos Lima",
+    client: "Ana Lima",
     barber: "Carlos Silva",
-    service: "Corte + Barba",
-    date: "14/11/2024",
-    time: "16:00",
-    status: "executado",
-    price: 50.0,
-  },
-  {
-    id: "6",
-    client: "André Souza",
-    barber: "João Santos",
-    service: "Desenho de Barba",
-    date: "14/11/2024",
-    time: "15:00",
-    status: "executado",
-    price: 30.0,
+    service: "Corte Feminino",
+    date: "2024-11-26",
+    time: "10:00",
+    status: "Confirmado",
+    price: 45,
   },
 ];
 
 const Appointments = () => {
-  const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    to: new Date(),
-  });
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (!over) {
-      setActiveId(null);
-      return;
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Confirmado":
+        return "bg-green-500/10 text-green-500 hover:bg-green-500/20";
+      case "Aguardando":
+        return "bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20";
+      case "Cancelado":
+        return "bg-red-500/10 text-red-500 hover:bg-red-500/20";
+      default:
+        return "bg-secondary text-secondary-foreground";
     }
-
-    const appointmentId = active.id as string;
-    const newStatus = over.id as "agendado" | "em_execucao" | "executado";
-
-    setAppointments((appointments) =>
-      appointments.map((appointment) =>
-        appointment.id === appointmentId
-          ? { ...appointment, status: newStatus }
-          : appointment
-      )
-    );
-
-    setActiveId(null);
   };
-
-  const agendadoAppointments = appointments.filter((a) => a.status === "agendado");
-  const emExecucaoAppointments = appointments.filter((a) => a.status === "em_execucao");
-  const executadoAppointments = appointments.filter((a) => a.status === "executado");
-
-  const activeAppointment = appointments.find((a) => a.id === activeId);
 
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8 space-y-8">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Agendamentos</h1>
-            <p className="text-muted-foreground mt-1">
-              Gerencie seus agendamentos em tempo real
-            </p>
+            <p className="text-muted-foreground mt-1">Gerencie todos os agendamentos da barbearia</p>
           </div>
           <Button className="gap-2">
             <Plus className="h-4 w-4" />
@@ -155,48 +76,57 @@ const Appointments = () => {
           </Button>
         </div>
 
-        {/* Filtro de Período */}
-        <div className="flex flex-col gap-4">
-          <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            Período de Análise
-          </h2>
-          <PeriodFilter dateRange={dateRange} onDateRangeChange={setDateRange} />
-        </div>
-
-        {/* Kanban Board */}
-        <DndContext
-          sensors={sensors}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <KanbanColumn
-              id="agendado"
-              title="Agendado"
-              appointments={agendadoAppointments}
-              color="bg-blue-500/20 text-blue-600"
-            />
-            <KanbanColumn
-              id="em_execucao"
-              title="Em Execução"
-              appointments={emExecucaoAppointments}
-              color="bg-orange-500/20 text-orange-600"
-            />
-            <KanbanColumn
-              id="executado"
-              title="Executado"
-              appointments={executadoAppointments}
-              color="bg-green-500/20 text-green-600"
-            />
-          </div>
-
-          <DragOverlay>
-            {activeAppointment ? (
-              <AppointmentCard appointment={activeAppointment} />
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+        <Card className="border-border/40 bg-card/50 backdrop-blur">
+          <CardHeader>
+            <CardTitle>Próximos Agendamentos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {mockAppointments.map((appointment) => (
+                <div
+                  key={appointment.id}
+                  className="flex items-center justify-between p-4 rounded-lg bg-secondary/50 border border-border/40 hover:bg-secondary/80 transition-all"
+                >
+                  <div className="flex items-center gap-4 flex-1">
+                    <Avatar className="h-12 w-12 border-2 border-primary/20">
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {appointment.client.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-foreground">{appointment.client}</h3>
+                      <div className="flex flex-wrap gap-3 mt-1 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          <span>{appointment.barber}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>{new Date(appointment.date).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          <span>{appointment.time}</span>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">{appointment.service}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <div className="text-lg font-bold text-foreground">
+                        R$ {appointment.price.toFixed(2)}
+                      </div>
+                      <Badge className={getStatusColor(appointment.status)}>
+                        {appointment.status}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );

@@ -1,24 +1,142 @@
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatsCard } from "@/components/dashboard/StatsCard";
-import { DollarSign, TrendingUp, CreditCard, Wallet } from "lucide-react";
+import { DollarSign, TrendingUp, CreditCard } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from "recharts";
 import { formatCurrency } from "@/lib/formatters";
-
-const mockRevenueData = [
-  { month: "Jan", revenue: 8500, expenses: 3200 },
-  { month: "Fev", revenue: 9200, expenses: 3500 },
-  { month: "Mar", revenue: 8800, expenses: 3300 },
-  { month: "Abr", revenue: 10500, expenses: 3800 },
-  { month: "Mai", revenue: 11200, expenses: 4000 },
-  { month: "Jun", revenue: 10800, expenses: 3900 },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const Revenue = () => {
-  const totalRevenue = 50900;
-  const totalExpenses = 21700;
-  const netProfit = totalRevenue - totalExpenses;
-  const avgTicket = 45.50;
+  // Buscar agendamentos concluídos com todos os serviços e produtos
+  const { data: appointments } = useQuery({
+    queryKey: ["completed-appointments"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("appointments")
+        .select(`
+          id,
+          barber_id,
+          appointment_date,
+          services (price),
+          appointment_services (
+            services (price)
+          ),
+          appointment_products (
+            quantity,
+            products (price)
+          ),
+          barbers (
+            commission_percentage
+          )
+        `)
+        .eq("status", "Concluído")
+        .order("appointment_date", { ascending: true });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Calcular faturamento total e comissões
+  const calculateRevenue = () => {
+    if (!appointments) return { totalRevenue: 0, totalCommissions: 0, avgTicket: 0 };
+
+    let totalRevenue = 0;
+    let totalCommissions = 0;
+
+    appointments.forEach((appointment: any) => {
+      let appointmentTotal = 0;
+
+      // Serviço principal
+      if (appointment.services?.price) {
+        appointmentTotal += Number(appointment.services.price);
+      }
+
+      // Serviços adicionais
+      if (appointment.appointment_services) {
+        appointment.appointment_services.forEach((as: any) => {
+          if (as.services?.price) {
+            appointmentTotal += Number(as.services.price);
+          }
+        });
+      }
+
+      // Produtos
+      if (appointment.appointment_products) {
+        appointment.appointment_products.forEach((ap: any) => {
+          if (ap.products?.price && ap.quantity) {
+            appointmentTotal += Number(ap.products.price) * ap.quantity;
+          }
+        });
+      }
+
+      totalRevenue += appointmentTotal;
+
+      // Calcular comissão deste agendamento
+      if (appointment.barbers?.commission_percentage) {
+        totalCommissions += (appointmentTotal * Number(appointment.barbers.commission_percentage)) / 100;
+      }
+    });
+
+    const avgTicket = appointments.length > 0 ? totalRevenue / appointments.length : 0;
+
+    return { totalRevenue, totalCommissions, avgTicket };
+  };
+
+  const { totalRevenue, totalCommissions, avgTicket } = calculateRevenue();
+  const netProfit = totalRevenue - totalCommissions;
+
+  // Agrupar dados por mês para o gráfico
+  const getMonthlyData = () => {
+    if (!appointments) return [];
+
+    const monthlyMap = new Map<string, { revenue: number; commissions: number }>();
+
+    appointments.forEach((appointment: any) => {
+      const date = new Date(appointment.appointment_date);
+      const monthKey = date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+
+      let appointmentTotal = 0;
+
+      // Calcular total do agendamento
+      if (appointment.services?.price) {
+        appointmentTotal += Number(appointment.services.price);
+      }
+
+      if (appointment.appointment_services) {
+        appointment.appointment_services.forEach((as: any) => {
+          if (as.services?.price) {
+            appointmentTotal += Number(as.services.price);
+          }
+        });
+      }
+
+      if (appointment.appointment_products) {
+        appointment.appointment_products.forEach((ap: any) => {
+          if (ap.products?.price && ap.quantity) {
+            appointmentTotal += Number(ap.products.price) * ap.quantity;
+          }
+        });
+      }
+
+      const commission = appointment.barbers?.commission_percentage
+        ? (appointmentTotal * Number(appointment.barbers.commission_percentage)) / 100
+        : 0;
+
+      const existing = monthlyMap.get(monthKey) || { revenue: 0, commissions: 0 };
+      monthlyMap.set(monthKey, {
+        revenue: existing.revenue + appointmentTotal,
+        commissions: existing.commissions + commission,
+      });
+    });
+
+    return Array.from(monthlyMap.entries())
+      .map(([month, data]) => ({ month, ...data }))
+      .slice(-6); // Últimos 6 meses
+  };
+
+  const monthlyData = getMonthlyData();
 
   return (
     <Layout>
@@ -28,18 +146,18 @@ const Revenue = () => {
           <p className="text-muted-foreground mt-1">Análise financeira e performance da barbearia</p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-3">
           <StatsCard
             title="Faturamento Total"
             value={formatCurrency(totalRevenue)}
             icon={DollarSign}
-            trend={{ value: 12, isPositive: true }}
+            description="Agendamentos concluídos"
           />
           <StatsCard
             title="Lucro Líquido"
             value={formatCurrency(netProfit)}
             icon={TrendingUp}
-            trend={{ value: 8, isPositive: true }}
+            description="Após comissões"
           />
           <StatsCard
             title="Ticket Médio"
@@ -47,21 +165,15 @@ const Revenue = () => {
             icon={CreditCard}
             description="Por atendimento"
           />
-          <StatsCard
-            title="Despesas"
-            value={formatCurrency(totalExpenses)}
-            icon={Wallet}
-            trend={{ value: 3, isPositive: false }}
-          />
         </div>
 
         <Card className="border-border/40 bg-card/50 backdrop-blur">
           <CardHeader>
-            <CardTitle className="text-foreground">Receitas vs Despesas</CardTitle>
+            <CardTitle className="text-foreground">Receitas vs Comissões</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={400}>
-              <BarChart data={mockRevenueData}>
+              <BarChart data={monthlyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                 <XAxis 
                   dataKey="month" 
@@ -85,7 +197,7 @@ const Revenue = () => {
                 />
                 <Legend />
                 <Bar dataKey="revenue" name="Receita" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="expenses" name="Despesas" fill="hsl(var(--destructive))" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="commissions" name="Comissões" fill="hsl(var(--destructive))" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

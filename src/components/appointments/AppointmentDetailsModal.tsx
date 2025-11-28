@@ -30,6 +30,8 @@ import {
   Plus,
   Trash2,
   DollarSign,
+  QrCode,
+  CreditCard,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useServices } from "@/hooks/useServices";
@@ -370,16 +372,18 @@ export function AppointmentDetailsModal({
                 <Label className="text-base font-semibold">Forma de Pagamento *</Label>
                 <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
                   <div 
-                    className="flex items-center space-x-2 p-3 rounded-lg border border-input hover:bg-accent hover:border-primary cursor-pointer transition-all group"
+                    className="flex items-center space-x-3 p-3 rounded-lg border border-input hover:bg-accent hover:border-primary cursor-pointer transition-all group"
                     onClick={() => setPaymentMethod("pix")}
                   >
+                    <QrCode className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                     <RadioGroupItem value="pix" id="pix" />
                     <Label htmlFor="pix" className="flex-1 cursor-pointer group-hover:text-foreground group-hover:font-semibold transition-all">PIX</Label>
                   </div>
                   <div 
-                    className="flex items-center space-x-2 p-3 rounded-lg border border-input hover:bg-accent hover:border-primary cursor-pointer transition-all group"
+                    className="flex items-center space-x-3 p-3 rounded-lg border border-input hover:bg-accent hover:border-primary cursor-pointer transition-all group"
                     onClick={() => setPaymentMethod("credit_card")}
                   >
+                    <CreditCard className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                     <RadioGroupItem value="credit_card" id="credit_card" />
                     <Label htmlFor="credit_card" className="flex-1 cursor-pointer group-hover:text-foreground group-hover:font-semibold transition-all">Cartão de Crédito</Label>
                   </div>

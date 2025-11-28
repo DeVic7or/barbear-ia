@@ -101,12 +101,43 @@ export const useCreateWalkInAppointment = () => {
       paymentMethod: string;
       notes?: string;
     }) => {
+      // Find or create client
+      let clientId = null;
+      
+      if (clientPhone) {
+        // Try to find existing client by phone
+        const { data: existingClient } = await supabase
+          .from("clients")
+          .select("id")
+          .eq("phone", clientPhone.trim())
+          .maybeSingle();
+        
+        if (existingClient) {
+          clientId = existingClient.id;
+        } else {
+          // Create new client
+          const { data: newClient, error: clientError } = await supabase
+            .from("clients")
+            .insert({
+              name: clientName.trim(),
+              phone: clientPhone.trim(),
+            })
+            .select("id")
+            .single();
+          
+          if (!clientError && newClient) {
+            clientId = newClient.id;
+          }
+        }
+      }
+
       // Create appointment as completed and presencial
       const { data: appointment, error: appointmentError } = await supabase
         .from("appointments")
         .insert({
           client_name: clientName,
           client_phone: clientPhone,
+          client_id: clientId,
           barber_id: barberId,
           service_id: serviceId,
           appointment_date: new Date().toISOString().split('T')[0],
@@ -154,6 +185,7 @@ export const useCreateWalkInAppointment = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
   });
 };

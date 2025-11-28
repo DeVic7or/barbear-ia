@@ -2,11 +2,87 @@ import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useReports } from "@/hooks/useReports";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingUp, TrendingDown, Package, Users, Calendar, Monitor, Store } from "lucide-react";
+import { TrendingUp, TrendingDown, Package, Users, Calendar, Monitor, Store, Clock, ChevronRight } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
+import { useRef } from "react";
 
 const Reports = () => {
   const { data: reports, isLoading } = useReports();
+  
+  // Refs para cada seção
+  const completedRef = useRef<HTMLDivElement>(null);
+  const typesRef = useRef<HTMLDivElement>(null);
+  const productsRef = useRef<HTMLDivElement>(null);
+  const servicesRef = useRef<HTMLDivElement>(null);
+  const barbersRef = useRef<HTMLDivElement>(null);
+  const timeSlotsRef = useRef<HTMLDivElement>(null);
+
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
+    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const reportCategories = [
+    {
+      title: "Agendamentos Concluídos",
+      description: "Resumo geral dos agendamentos finalizados",
+      icon: Calendar,
+      color: "text-blue-600",
+      bgColor: "bg-blue-500/10",
+      borderColor: "border-blue-500/30",
+      ref: completedRef,
+      stats: reports ? `${reports.completedAppointments.total} agendamentos` : "-",
+    },
+    {
+      title: "Presencial vs Virtual",
+      description: "Comparativo entre tipos de agendamento",
+      icon: Monitor,
+      color: "text-purple-600",
+      bgColor: "bg-purple-500/10",
+      borderColor: "border-purple-500/30",
+      ref: typesRef,
+      stats: reports ? `${reports.appointmentTypes.presencial.count} presenciais` : "-",
+    },
+    {
+      title: "Desempenho de Produtos",
+      description: "Produtos mais e menos vendidos",
+      icon: Package,
+      color: "text-green-600",
+      bgColor: "bg-green-500/10",
+      borderColor: "border-green-500/30",
+      ref: productsRef,
+      stats: reports?.topProducts[0] ? `Top: ${reports.topProducts[0].name}` : "-",
+    },
+    {
+      title: "Desempenho de Serviços",
+      description: "Serviços mais e menos procurados",
+      icon: Store,
+      color: "text-orange-600",
+      bgColor: "bg-orange-500/10",
+      borderColor: "border-orange-500/30",
+      ref: servicesRef,
+      stats: reports?.topServices[0] ? `Top: ${reports.topServices[0].name}` : "-",
+    },
+    {
+      title: "Desempenho dos Barbeiros",
+      description: "Comparativo de agendamentos por barbeiro",
+      icon: Users,
+      color: "text-pink-600",
+      bgColor: "bg-pink-500/10",
+      borderColor: "border-pink-500/30",
+      ref: barbersRef,
+      stats: reports?.topBarbers[0] ? `Top: ${reports.topBarbers[0].name}` : "-",
+    },
+    {
+      title: "Análise de Horários",
+      description: "Horários mais e menos frequentes",
+      icon: Clock,
+      color: "text-cyan-600",
+      bgColor: "bg-cyan-500/10",
+      borderColor: "border-cyan-500/30",
+      ref: timeSlotsRef,
+      stats: reports?.topTimeSlots[0] ? `Mais frequente: ${reports.topTimeSlots[0].time}` : "-",
+    },
+  ];
 
   if (isLoading) {
     return (
@@ -30,7 +106,7 @@ const Reports = () => {
 
   return (
     <Layout>
-      <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Relatórios</h1>
           <p className="text-sm sm:text-base text-muted-foreground mt-2">
@@ -38,8 +114,43 @@ const Reports = () => {
           </p>
         </div>
 
+        {/* Grade de Categorias */}
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {reportCategories.map((category, idx) => {
+            const Icon = category.icon;
+            return (
+              <Card
+                key={idx}
+                className={`cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] border-2 ${category.borderColor} ${category.bgColor}`}
+                onClick={() => scrollToSection(category.ref)}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className={`p-2 rounded-lg ${category.bgColor}`}>
+                          <Icon className={`h-5 w-5 ${category.color}`} />
+                        </div>
+                        <h3 className="font-bold text-foreground">{category.title}</h3>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {category.description}
+                      </p>
+                      <p className={`text-sm font-semibold ${category.color}`}>
+                        {category.stats}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
         {/* Agendamentos Concluídos */}
-        <Card>
+        <div ref={completedRef} className="scroll-mt-6">
+          <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
@@ -72,9 +183,11 @@ const Reports = () => {
             </div>
           </CardContent>
         </Card>
+        </div>
 
         {/* Relatório de Tipos de Agendamento */}
-        <Card>
+        <div ref={typesRef} className="scroll-mt-6">
+          <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Monitor className="h-5 w-5" />
@@ -170,9 +283,11 @@ const Reports = () => {
             </div>
           </CardContent>
         </Card>
+        </div>
 
         {/* Relatório de Produtos */}
-        <Card>
+        <div ref={productsRef} className="scroll-mt-6">
+          <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Package className="h-5 w-5" />
@@ -236,9 +351,11 @@ const Reports = () => {
             )}
           </CardContent>
         </Card>
+        </div>
 
         {/* Relatório de Serviços */}
-        <Card>
+        <div ref={servicesRef} className="scroll-mt-6">
+          <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
@@ -302,9 +419,11 @@ const Reports = () => {
             )}
           </CardContent>
         </Card>
+        </div>
 
         {/* Relatório de Barbeiros */}
-        <Card>
+        <div ref={barbersRef} className="scroll-mt-6">
+          <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
@@ -368,9 +487,11 @@ const Reports = () => {
             )}
           </CardContent>
         </Card>
+        </div>
 
         {/* Relatório de Horários */}
-        <Card>
+        <div ref={timeSlotsRef} className="scroll-mt-6">
+          <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
@@ -420,6 +541,7 @@ const Reports = () => {
             )}
           </CardContent>
         </Card>
+        </div>
       </div>
     </Layout>
   );

@@ -1,4 +1,4 @@
-import { Home, Users, Calendar, DollarSign, Package, UserCircle, Scissors, FileText, CreditCard, Receipt, Shield, CalendarClock, User } from "lucide-react";
+import { Home, Users, Calendar, DollarSign, Package, UserCircle, Scissors, FileText, CreditCard, Receipt, Shield, CalendarClock, User, BarChart3, CalendarDays } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -15,27 +15,36 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const menuItems = [
-  { title: "Início", url: "/", icon: Home },
-  { title: "Barbeiros", url: "/barbeiros", icon: Users },
-  { title: "Clientes", url: "/clientes", icon: User },
-  { title: "Agendamentos", url: "/agendamentos", icon: Calendar },
-  { title: "Agenda", url: "/agenda", icon: CalendarClock },
-  { title: "Faturamento", url: "/faturamento", icon: DollarSign },
-  { title: "Produtos", url: "/produtos", icon: Package },
-  { title: "Relatórios", url: "/relatorios", icon: FileText },
-  { title: "Planos", url: "/planos", icon: CreditCard },
-  { title: "Pagamentos", url: "/pagamentos", icon: Receipt },
-  { title: "Perfil", url: "/perfil", icon: UserCircle },
-];
-
 export function AppSidebar() {
   const { open } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
-  const { isAdmin } = useUserRole();
+  const { isGerente } = useUserRole();
 
   const isActive = (path: string) => currentPath === path;
+
+  // Páginas acessíveis para todos
+  const commonPages = [
+    { title: "Início", url: "/", icon: Home },
+    { title: "Clientes", url: "/clientes", icon: User },
+    { title: "Agendamentos", url: "/agendamentos", icon: Calendar },
+    { title: "Produtos", url: "/produtos", icon: Package },
+    { title: "Perfil", url: "/perfil", icon: UserCircle },
+  ];
+
+  // Páginas exclusivas para gerentes
+  const gerentePages = [
+    { title: "Agenda", url: "/agenda", icon: CalendarDays },
+    { title: "Barbeiros", url: "/barbeiros", icon: Scissors },
+    { title: "Faturamento", url: "/faturamento", icon: DollarSign },
+    { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
+    { title: "Planos", url: "/planos", icon: CreditCard },
+    { title: "Pagamentos", url: "/pagamentos", icon: Receipt },
+  ];
+
+  const menuItems = isGerente 
+    ? [...commonPages.slice(0, 3), ...gerentePages, ...commonPages.slice(3)]
+    : commonPages;
 
   return (
     <Sidebar className={open ? "w-64" : "w-16"}>
@@ -85,7 +94,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {/* Admin Section */}
-        {isAdmin && (
+        {isGerente && (
           <SidebarGroup>
             <SidebarGroupLabel className={!open ? "sr-only" : ""}>
               Administração

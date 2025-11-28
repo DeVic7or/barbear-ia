@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = 'admin' | 'user';
+export type AppRole = 'admin' | 'user' | 'gerente' | 'barbeiro';
 
 interface UserRole {
   id: string;
@@ -28,11 +28,15 @@ export const useUserRole = () => {
   });
 
   const isAdmin = roles.some(role => role.role === 'admin');
+  const isGerente = roles.some(role => role.role === 'gerente' || role.role === 'admin');
+  const isBarbeiro = roles.some(role => role.role === 'barbeiro');
   const hasRole = (role: AppRole) => roles.some(r => r.role === role);
 
   return {
     roles,
     isAdmin,
+    isGerente,
+    isBarbeiro,
     hasRole,
     isLoading,
   };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,14 +7,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, Minus, QrCode, CreditCard, DollarSign, Banknote } from "lucide-react";
+import { Loader2, Plus, Minus, QrCode, CreditCard, DollarSign, Banknote, Check } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCreateWalkInAppointment } from "@/hooks/useAppointments";
 import { useServices } from "@/hooks/useServices";
 import { useProducts, type Product } from "@/hooks/useProducts";
+import { useClients } from "@/hooks/useClients";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/formatters";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface NewAppointmentDialogProps {
   open: boolean;
@@ -24,6 +27,8 @@ interface NewAppointmentDialogProps {
 export const NewAppointmentDialog = ({ open, onOpenChange }: NewAppointmentDialogProps) => {
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [barberId, setBarberId] = useState("");
   const [serviceId, setServiceId] = useState("");
   const [additionalServices, setAdditionalServices] = useState<string[]>([]);
@@ -42,7 +47,29 @@ export const NewAppointmentDialog = ({ open, onOpenChange }: NewAppointmentDialo
 
   const { data: services } = useServices();
   const { data: products } = useProducts();
+  const { data: clients } = useClients();
   const createWalkIn = useCreateWalkInAppointment();
+
+  // Filter clients based on search term
+  const filteredClients = useMemo(() => {
+    if (!clients || !clientName.trim()) return [];
+    
+    const term = clientName.trim().toLowerCase();
+    return clients
+      .filter((client) => {
+        const nameMatch = client.name.toLowerCase().includes(term);
+        const phoneMatch = client.phone.toLowerCase().includes(term);
+        return nameMatch || phoneMatch;
+      })
+      .slice(0, 5); // Limit to 5 suggestions
+  }, [clients, clientName]);
+
+  const handleSelectClient = (client: any) => {
+    setClientName(client.name);
+    setClientPhone(client.phone);
+    setSelectedClientId(client.id);
+    setShowSuggestions(false);
+  };
 
   const mainService = services?.find((s) => s.id === serviceId);
   const selectedAdditionalServices = services?.filter((s) => additionalServices.includes(s.id)) || [];
@@ -79,6 +106,7 @@ export const NewAppointmentDialog = ({ open, onOpenChange }: NewAppointmentDialo
       // Reset form
       setClientName("");
       setClientPhone("");
+      setSelectedClientId(null);
       setBarberId("");
       setServiceId("");
       setAdditionalServices([]);
@@ -127,12 +155,62 @@ export const NewAppointmentDialog = ({ open, onOpenChange }: NewAppointmentDialo
           {/* Cliente */}
           <div className="space-y-2">
             <Label htmlFor="client-name">Nome do Cliente *</Label>
-            <Input
-              id="client-name"
-              value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
-              placeholder="Nome completo"
-            />
+            <Popover open={showSuggestions && filteredClients.length > 0} onOpenChange={setShowSuggestions}>
+              <PopoverTrigger asChild>
+                <div className="relative">
+                  <Input
+                    id="client-name"
+                    value={clientName}
+                    onChange={(e) => {
+                      setClientName(e.target.value);
+                      setSelectedClientId(null);
+                      setShowSuggestions(true);
+                      // Clear phone if typing new name
+                      if (e.target.value !== clientName) {
+                        setClientPhone("");
+                      }
+                    }}
+                    onFocus={() => setShowSuggestions(true)}
+                    placeholder="Digite o nome do cliente"
+                    maxLength={100}
+                  />
+                </div>
+              </PopoverTrigger>
+              <PopoverContent 
+                className="w-[var(--radix-popover-trigger-width)] p-0" 
+                align="start"
+                onOpenAutoFocus={(e) => e.preventDefault()}
+              >
+                <Command>
+                  <CommandList>
+                    <CommandEmpty>Nenhum cliente encontrado</CommandEmpty>
+                    <CommandGroup>
+                      {filteredClients.map((client) => (
+                        <CommandItem
+                          key={client.id}
+                          value={client.id}
+                          onSelect={() => handleSelectClient(client)}
+                          className="cursor-pointer"
+                        >
+                          <Check
+                            className={`mr-2 h-4 w-4 ${
+                              selectedClientId === client.id ? "opacity-100" : "opacity-0"
+                            }`}
+                          />
+                          <div className="flex flex-col">
+                            <span className="font-medium">{client.name}</span>
+                            <span className="text-xs text-muted-foreground">{client.phone}</span>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            {selectedClientId && (
+              <p className="text-xs text-muted-foreground">Cliente selecionado da base de dados</p>
+            )}
           </div>
 
           <div className="space-y-2">

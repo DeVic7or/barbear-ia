@@ -84,15 +84,20 @@ export const useFinalizeAppointment = () => {
       appointmentId,
       additionalServices,
       additionalProducts,
+      paymentMethod,
     }: {
       appointmentId: string;
       additionalServices: string[];
       additionalProducts: { productId: string; quantity: number }[];
+      paymentMethod: string;
     }) => {
-      // Update appointment status
+      // Update appointment status and payment method
       const { error: updateError } = await supabase
         .from("appointments")
-        .update({ status: "Concluído" })
+        .update({ 
+          status: "Concluído",
+          payment_method: paymentMethod,
+        })
         .eq("id", appointmentId);
 
       if (updateError) throw updateError;

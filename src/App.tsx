@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRoute } from "./components/AdminRoute";
+import { GerenteRoute } from "./components/GerenteRoute";
 import Index from "./pages/Index";
 import Barbers from "./pages/Barbers";
 import Clients from "./pages/Clients";
@@ -30,18 +31,21 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/auth" element={<Auth />} />
+          {/* Rotas acessíveis para todos os usuários autenticados */}
           <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-          <Route path="/barbeiros" element={<ProtectedRoute><Barbers /></ProtectedRoute>} />
           <Route path="/clientes" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
           <Route path="/agendamentos" element={<ProtectedRoute><Appointments /></ProtectedRoute>} />
-          <Route path="/agenda" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
-          <Route path="/faturamento" element={<ProtectedRoute><Revenue /></ProtectedRoute>} />
           <Route path="/produtos" element={<ProtectedRoute><Products /></ProtectedRoute>} />
-          <Route path="/relatorios" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-          <Route path="/planos" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
-          <Route path="/pagamentos" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
-          <Route path="/admin" element={<ProtectedRoute><AdminRoute><Admin /></AdminRoute></ProtectedRoute>} />
           <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          
+          {/* Rotas exclusivas para Gerentes */}
+          <Route path="/barbeiros" element={<ProtectedRoute><GerenteRoute><Barbers /></GerenteRoute></ProtectedRoute>} />
+          <Route path="/agenda" element={<ProtectedRoute><GerenteRoute><Schedule /></GerenteRoute></ProtectedRoute>} />
+          <Route path="/faturamento" element={<ProtectedRoute><GerenteRoute><Revenue /></GerenteRoute></ProtectedRoute>} />
+          <Route path="/relatorios" element={<ProtectedRoute><GerenteRoute><Reports /></GerenteRoute></ProtectedRoute>} />
+          <Route path="/planos" element={<ProtectedRoute><GerenteRoute><Plans /></GerenteRoute></ProtectedRoute>} />
+          <Route path="/pagamentos" element={<ProtectedRoute><GerenteRoute><Payments /></GerenteRoute></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><AdminRoute><Admin /></AdminRoute></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

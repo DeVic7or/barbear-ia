@@ -93,6 +93,7 @@ export type Database = {
         Row: {
           appointment_date: string
           appointment_time: string
+          appointment_type: string
           barber_id: string | null
           client_id: string | null
           client_name: string
@@ -108,6 +109,7 @@ export type Database = {
         Insert: {
           appointment_date: string
           appointment_time: string
+          appointment_type?: string
           barber_id?: string | null
           client_id?: string | null
           client_name: string
@@ -123,6 +125,7 @@ export type Database = {
         Update: {
           appointment_date?: string
           appointment_time?: string
+          appointment_type?: string
           barber_id?: string | null
           client_id?: string | null
           client_name?: string

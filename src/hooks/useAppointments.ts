@@ -13,6 +13,8 @@ export interface Appointment {
   appointment_time: string;
   status: string;
   notes: string | null;
+  appointment_type: string;
+  payment_method: string | null;
   barbers?: {
     name: string;
   };
@@ -72,6 +74,86 @@ export const useAppointments = () => {
 
       if (error) throw error;
       return data as Appointment[];
+    },
+  });
+};
+
+export const useCreateWalkInAppointment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      clientName,
+      clientPhone,
+      barberId,
+      serviceId,
+      additionalServices,
+      additionalProducts,
+      paymentMethod,
+      notes,
+    }: {
+      clientName: string;
+      clientPhone: string;
+      barberId: string;
+      serviceId: string;
+      additionalServices: string[];
+      additionalProducts: { productId: string; quantity: number }[];
+      paymentMethod: string;
+      notes?: string;
+    }) => {
+      // Create appointment as completed and presencial
+      const { data: appointment, error: appointmentError } = await supabase
+        .from("appointments")
+        .insert({
+          client_name: clientName,
+          client_phone: clientPhone,
+          barber_id: barberId,
+          service_id: serviceId,
+          appointment_date: new Date().toISOString().split('T')[0],
+          appointment_time: new Date().toTimeString().split(' ')[0].substring(0, 5),
+          status: "Concluído",
+          appointment_type: "Presencial",
+          payment_method: paymentMethod,
+          notes: notes || null,
+        })
+        .select()
+        .single();
+
+      if (appointmentError) throw appointmentError;
+
+      // Add additional services
+      if (additionalServices.length > 0) {
+        const servicesData = additionalServices.map((serviceId) => ({
+          appointment_id: appointment.id,
+          service_id: serviceId,
+        }));
+
+        const { error: servicesError } = await supabase
+          .from("appointment_services")
+          .insert(servicesData);
+
+        if (servicesError) throw servicesError;
+      }
+
+      // Add products
+      if (additionalProducts.length > 0) {
+        const productsData = additionalProducts.map((product) => ({
+          appointment_id: appointment.id,
+          product_id: product.productId,
+          quantity: product.quantity,
+        }));
+
+        const { error: productsError } = await supabase
+          .from("appointment_products")
+          .insert(productsData);
+
+        if (productsError) throw productsError;
+      }
+
+      return { success: true, appointment };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
     },
   });
 };

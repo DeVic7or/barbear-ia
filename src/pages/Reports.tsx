@@ -118,38 +118,42 @@ const Reports = () => {
 
         {/* Grade de Categorias - Mostra apenas quando nenhum relatório está selecionado */}
         {!selectedReport && (
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-            {reportCategories.map((category, idx) => {
-              const Icon = category.icon;
-              return (
-                <Card
-                  key={idx}
-                  className={`cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] border-2 ${category.borderColor} ${category.bgColor}`}
-                  onClick={() => setSelectedReport(category.id)}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className={`p-2 rounded-lg ${category.bgColor}`}>
-                            <Icon className={`h-5 w-5 ${category.color}`} />
-                          </div>
-                          <h3 className="font-bold text-foreground">{category.title}</h3>
+          <Card>
+            <CardContent className="p-0">
+              <div className="divide-y divide-border">
+                {reportCategories.map((category, idx) => {
+                  const Icon = category.icon;
+                  return (
+                    <div
+                      key={idx}
+                      className={`flex items-center justify-between p-4 sm:p-6 cursor-pointer transition-all hover:bg-muted/50 ${
+                        idx === 0 ? 'rounded-t-lg' : ''
+                      } ${idx === reportCategories.length - 1 ? 'rounded-b-lg' : ''}`}
+                      onClick={() => setSelectedReport(category.id)}
+                    >
+                      <div className="flex items-center gap-4 flex-1">
+                        <div className={`p-3 rounded-lg ${category.bgColor} border-2 ${category.borderColor}`}>
+                          <Icon className={`h-6 w-6 ${category.color}`} />
                         </div>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          {category.description}
-                        </p>
-                        <p className={`text-sm font-semibold ${category.color}`}>
-                          {category.stats}
-                        </p>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-foreground text-base sm:text-lg">
+                            {category.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {category.description}
+                          </p>
+                          <p className={`text-xs sm:text-sm font-semibold mt-2 ${category.color}`}>
+                            {category.stats}
+                          </p>
+                        </div>
                       </div>
-                      <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                      <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0 ml-2" />
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Agendamentos Concluídos */}

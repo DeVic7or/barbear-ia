@@ -28,42 +28,22 @@ export default function UserManagement() {
   const queryClient = useQueryClient();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
-  // Buscar todos os usuários com seus roles
+  // Buscar todos os usuários com seus roles através da edge function
   const { data: users, isLoading } = useQuery({
     queryKey: ["users-with-roles"],
     queryFn: async () => {
-      // Buscar todos os profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("id, created_at");
+      const { data, error } = await supabase.functions.invoke("get-users");
 
-      if (profilesError) throw profilesError;
+      if (error) {
+        console.error("Error calling get-users function:", error);
+        throw error;
+      }
 
-      // Buscar usuários do auth
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) throw new Error("Usuário não autenticado");
+      if (!data || !data.users) {
+        throw new Error("Nenhum usuário retornado");
+      }
 
-      // Para cada profile, buscar o email e roles
-      const usersWithRoles = await Promise.all(
-        profiles.map(async (profile) => {
-          // Buscar roles do usuário
-          const { data: roles } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", profile.id);
-
-          // Buscar email do usuário (fazemos isso através de uma edge function ou assumimos que está no metadata)
-          // Por enquanto, vamos usar um placeholder
-          return {
-            id: profile.id,
-            created_at: profile.created_at,
-            email: profile.id.substring(0, 8) + "...", // Placeholder
-            roles: roles || [],
-          };
-        })
-      );
-
-      return usersWithRoles as UserWithRole[];
+      return data.users as UserWithRole[];
     },
   });
 
@@ -196,10 +176,10 @@ export default function UserManagement() {
                 <Card key={user.id}>
                   <CardContent className="pt-6">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                      <div className="flex-1 space-y-3">
+                    <div className="flex-1 space-y-3">
                         <div className="flex items-center gap-2">
                           <Mail className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-mono text-sm">{user.id}</span>
+                          <span className="text-sm font-medium">{user.email}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-muted-foreground" />

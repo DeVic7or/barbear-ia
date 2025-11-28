@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useServices } from "@/hooks/useServices";
-import { useProducts } from "@/hooks/useProducts";
+import { useProducts, Product } from "@/hooks/useProducts";
 import { useFinalizeAppointment, Appointment } from "@/hooks/useAppointments";
 
 interface AppointmentDetailsModalProps {
@@ -50,7 +50,7 @@ export function AppointmentDetailsModal({
   onOpenChange,
 }: AppointmentDetailsModalProps) {
   const [additionalServiceIds, setAdditionalServiceIds] = useState<string[]>([]);
-  const [additionalProductIds, setAdditionalProductIds] = useState<string[]>([]);
+  const [additionalProducts, setAdditionalProducts] = useState<{ productId: string; quantity: number }[]>([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const { toast } = useToast();
@@ -72,29 +72,40 @@ export function AppointmentDetailsModal({
   };
 
   const addProduct = (productId: string) => {
-    if (!additionalProductIds.includes(productId)) {
-      setAdditionalProductIds([...additionalProductIds, productId]);
+    if (!additionalProducts.find(p => p.productId === productId)) {
+      setAdditionalProducts([...additionalProducts, { productId, quantity: 1 }]);
     }
   };
 
   const removeProduct = (productId: string) => {
-    setAdditionalProductIds(additionalProductIds.filter((id) => id !== productId));
+    setAdditionalProducts(additionalProducts.filter((p) => p.productId !== productId));
+  };
+
+  const updateProductQuantity = (productId: string, delta: number) => {
+    setAdditionalProducts(additionalProducts.map(p => {
+      if (p.productId === productId) {
+        const newQuantity = Math.max(1, p.quantity + delta);
+        return { ...p, quantity: newQuantity };
+      }
+      return p;
+    }));
   };
 
   const additionalServices = services.filter((s) =>
     additionalServiceIds.includes(s.id)
   );
-  const additionalProducts = products.filter((p) =>
-    additionalProductIds.includes(p.id)
-  );
+  const selectedProducts = additionalProducts.map(ap => {
+    const product = products.find(p => p.id === ap.productId);
+    return product ? { ...product, quantity: ap.quantity } : null;
+  }).filter(Boolean) as (Product & { quantity: number })[];
 
   const mainServicePrice = appointment.services?.price || 0;
   const additionalServicesTotal = additionalServices.reduce(
     (sum, s) => sum + Number(s.price),
     0
   );
-  const additionalProductsTotal = additionalProducts.reduce(
-    (sum, p) => sum + Number(p.price),
+  const additionalProductsTotal = selectedProducts.reduce(
+    (sum, p) => sum + (Number(p.price) * p.quantity),
     0
   );
   const totalPrice = mainServicePrice + additionalServicesTotal + additionalProductsTotal;
@@ -113,10 +124,7 @@ export function AppointmentDetailsModal({
       await finalizeAppointment.mutateAsync({
         appointmentId: appointment.id,
         additionalServices: additionalServiceIds,
-        additionalProducts: additionalProductIds.map((id) => ({
-          productId: id,
-          quantity: 1,
-        })),
+        additionalProducts: additionalProducts,
         paymentMethod,
       });
 
@@ -126,7 +134,7 @@ export function AppointmentDetailsModal({
       });
       
       setAdditionalServiceIds([]);
-      setAdditionalProductIds([]);
+      setAdditionalProducts([]);
       setPaymentMethod("");
       setShowConfirmDialog(false);
       onOpenChange(false);
@@ -266,15 +274,34 @@ export function AppointmentDetailsModal({
                 <h4 className="font-semibold">Produtos</h4>
               </div>
               <div className="space-y-2 mb-3">
-                {additionalProducts.map((product) => (
+                {selectedProducts.map((product) => (
                   <div
                     key={product.id}
                     className="flex justify-between items-center p-3 bg-secondary/50 rounded-lg"
                   >
                     <span>{product.name}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">
-                        {formatCurrency(Number(product.price))}
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 bg-background/50 rounded-md px-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => updateProductQuantity(product.id, -1)}
+                        >
+                          <span className="text-lg">−</span>
+                        </Button>
+                        <span className="w-8 text-center font-medium">{product.quantity}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => updateProductQuantity(product.id, 1)}
+                        >
+                          <span className="text-lg">+</span>
+                        </Button>
+                      </div>
+                      <span className="font-semibold min-w-[80px] text-right">
+                        {formatCurrency(Number(product.price) * product.quantity)}
                       </span>
                       <Button
                         variant="ghost"
@@ -289,7 +316,7 @@ export function AppointmentDetailsModal({
               </div>
               <div className="flex flex-wrap gap-2">
                 {products
-                  .filter((p) => !additionalProductIds.includes(p.id))
+                  .filter((p) => !additionalProducts.find(ap => ap.productId === p.id))
                   .map((product) => (
                     <Button
                       key={product.id}
@@ -354,11 +381,11 @@ export function AppointmentDetailsModal({
                     </span>
                   </div>
                 )}
-                {additionalProducts.length > 0 && (
+                {selectedProducts.length > 0 && (
                   <div className="flex justify-between">
                     <span>Produtos:</span>
                     <span className="font-semibold">
-                      {additionalProducts.length}
+                      {selectedProducts.reduce((sum, p) => sum + p.quantity, 0)} unidades
                     </span>
                   </div>
                 )}

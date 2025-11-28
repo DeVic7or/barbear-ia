@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AppRole } from "@/hooks/useUserRole";
+import { NewUserDialog } from "@/components/users/NewUserDialog";
 
 interface UserWithRole {
   id: string;
@@ -153,11 +154,14 @@ export default function UserManagement() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Gerenciar Usuários</h1>
-          <p className="text-muted-foreground">
-            Atribua papéis aos usuários do sistema
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Gerenciar Usuários</h1>
+            <p className="text-muted-foreground">
+              Atribua papéis aos usuários do sistema
+            </p>
+          </div>
+          <NewUserDialog />
         </div>
 
         <Card>

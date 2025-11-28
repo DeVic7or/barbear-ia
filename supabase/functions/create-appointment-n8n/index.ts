@@ -279,6 +279,7 @@ Deno.serve(async (req) => {
       service_id: payload.service_id || null,
       notes: payload.notes?.trim() || null,
       status: payload.status || 'Aguardando',
+      appointment_type: 'Virtual',
     };
 
     console.log('Creating appointment with data:', JSON.stringify(appointmentData, null, 2));

@@ -7,12 +7,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Calendar, Clock, User, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { useState, useMemo } from "react";
 import { AppointmentDetailsModal } from "@/components/appointments/AppointmentDetailsModal";
+import { NewAppointmentDialog } from "@/components/appointments/NewAppointmentDialog";
 import { useAppointments } from "@/hooks/useAppointments";
 import { formatCurrency } from "@/lib/formatters";
 
 const Appointments = () => {
   const { data: appointments, isLoading } = useAppointments();
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [newAppointmentOpen, setNewAppointmentOpen] = useState(false);
 
   // Filtrar agendamentos por status
   const confirmedAppointments = useMemo(() => 
@@ -95,7 +97,7 @@ const Appointments = () => {
             <h1 className="text-3xl font-bold text-foreground">Agendamentos</h1>
             <p className="text-muted-foreground mt-1">Gerencie todos os agendamentos da barbearia</p>
           </div>
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={() => setNewAppointmentOpen(true)}>
             <Plus className="h-4 w-4" />
             Novo Agendamento
           </Button>
@@ -182,6 +184,11 @@ const Appointments = () => {
           appointment={selectedAppointment}
           open={!!selectedAppointment}
           onOpenChange={(open) => !open && setSelectedAppointment(null)}
+        />
+
+        <NewAppointmentDialog
+          open={newAppointmentOpen}
+          onOpenChange={setNewAppointmentOpen}
         />
       </div>
     </Layout>

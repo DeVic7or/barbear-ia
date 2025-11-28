@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Calendar, Clock, User, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Plus, Calendar, Clock, User, Loader2, CheckCircle2, XCircle, Phone } from "lucide-react";
 import { useState, useMemo } from "react";
 import { AppointmentDetailsModal } from "@/components/appointments/AppointmentDetailsModal";
 import { NewAppointmentDialog } from "@/components/appointments/NewAppointmentDialog";
@@ -49,39 +49,63 @@ const Appointments = () => {
     <div
       key={appointment.id}
       onClick={() => setSelectedAppointment(appointment)}
-      className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg bg-secondary/50 border border-border/40 hover:bg-secondary/80 transition-all cursor-pointer"
+      className="group p-4 sm:p-5 rounded-xl bg-card border-2 border-border hover:border-primary/50 hover:shadow-lg transition-all cursor-pointer"
     >
-      <div className="flex items-center gap-3 sm:gap-4 w-full sm:flex-1">
-        <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-primary/20 flex-shrink-0">
-          <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm">
-            {appointment.client_name.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-foreground text-sm sm:text-base">{appointment.client_name}</h3>
-          <div className="flex flex-wrap gap-2 sm:gap-3 mt-1 text-xs sm:text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <User className="h-3 w-3" />
-              <span>{appointment.barbers?.name || 'N/A'}</span>
+      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+        {/* Avatar e Info Principal */}
+        <div className="flex items-start gap-4 flex-1">
+          <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border-2 border-primary/30 flex-shrink-0">
+            <AvatarFallback className="bg-primary text-primary-foreground text-lg font-bold">
+              {appointment.client_name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          
+          <div className="flex-1 min-w-0 space-y-2">
+            {/* Nome do Cliente */}
+            <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+              {appointment.client_name}
+            </h3>
+            
+            {/* Telefone */}
+            {appointment.client_phone && (
+              <div className="flex items-center gap-2 text-sm text-foreground">
+                <Phone className="h-4 w-4 text-primary" />
+                <span className="font-medium">{appointment.client_phone}</span>
+              </div>
+            )}
+            
+            {/* Informações do Agendamento */}
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <User className="h-4 w-4 text-primary" />
+                <span className="font-medium">{appointment.barbers?.name || 'N/A'}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Calendar className="h-4 w-4 text-primary" />
+                <span className="font-medium">{new Date(appointment.appointment_date).toLocaleDateString('pt-BR')}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Clock className="h-4 w-4 text-primary" />
+                <span className="font-medium">{appointment.appointment_time}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              <span>{new Date(appointment.appointment_date).toLocaleDateString('pt-BR')}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              <span>{appointment.appointment_time}</span>
+            
+            {/* Serviço */}
+            <div className="inline-block px-3 py-1 bg-primary/10 rounded-full">
+              <p className="text-sm font-medium text-primary">{appointment.services?.name || 'N/A'}</p>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">{appointment.services?.name || 'N/A'}</p>
         </div>
-      </div>
-      <div className="flex items-center gap-4">
-        <div className="text-right">
-          <div className="text-lg font-bold text-foreground">
-            {formatCurrency(appointment.services?.price || 0)}
+        
+        {/* Preço e Status */}
+        <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 sm:min-w-[120px]">
+          <div className="text-right">
+            <p className="text-xs text-muted-foreground mb-1">Valor</p>
+            <div className="text-2xl font-bold text-foreground">
+              {formatCurrency(appointment.services?.price || 0)}
+            </div>
           </div>
-          <Badge className={getStatusColor(appointment.status)}>
+          <Badge className={`${getStatusColor(appointment.status)} px-3 py-1 text-sm font-semibold`}>
             {appointment.status}
           </Badge>
         </div>

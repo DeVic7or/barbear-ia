@@ -369,11 +369,17 @@ export function AppointmentDetailsModal({
               <div className="mt-6 space-y-3">
                 <Label className="text-base font-semibold">Forma de Pagamento *</Label>
                 <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                  <div className="flex items-center space-x-2 p-3 rounded-lg border border-input hover:bg-accent cursor-pointer">
+                  <div 
+                    className="flex items-center space-x-2 p-3 rounded-lg border border-input hover:bg-accent cursor-pointer transition-colors"
+                    onClick={() => setPaymentMethod("pix")}
+                  >
                     <RadioGroupItem value="pix" id="pix" />
                     <Label htmlFor="pix" className="flex-1 cursor-pointer">PIX</Label>
                   </div>
-                  <div className="flex items-center space-x-2 p-3 rounded-lg border border-input hover:bg-accent cursor-pointer">
+                  <div 
+                    className="flex items-center space-x-2 p-3 rounded-lg border border-input hover:bg-accent cursor-pointer transition-colors"
+                    onClick={() => setPaymentMethod("credit_card")}
+                  >
                     <RadioGroupItem value="credit_card" id="credit_card" />
                     <Label htmlFor="credit_card" className="flex-1 cursor-pointer">Cartão de Crédito</Label>
                   </div>

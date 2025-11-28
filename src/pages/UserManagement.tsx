@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Shield, UserCog, Mail, Calendar } from "lucide-react";
+import { Shield, UserCog, Mail, Calendar, Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -28,6 +29,7 @@ interface UserWithRole {
 export default function UserManagement() {
   const queryClient = useQueryClient();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Buscar todos os usuários com seus roles através da edge function
   const { data: users, isLoading } = useQuery({
@@ -127,6 +129,25 @@ export default function UserManagement() {
     }
   };
 
+  // Filtrar usuários com base no termo de busca
+  const filteredUsers = useMemo(() => {
+    if (!users) return [];
+    if (!searchTerm.trim()) return users;
+
+    const lowerSearch = searchTerm.toLowerCase();
+    return users.filter((user) => {
+      // Buscar por email
+      const matchesEmail = user.email.toLowerCase().includes(lowerSearch);
+      
+      // Buscar por papel
+      const matchesRole = user.roles.some((roleObj) =>
+        getRoleLabel(roleObj.role).toLowerCase().includes(lowerSearch)
+      );
+
+      return matchesEmail || matchesRole;
+    });
+  }, [users, searchTerm]);
+
   if (isLoading) {
     return (
       <Layout>
@@ -171,12 +192,29 @@ export default function UserManagement() {
               Usuários do Sistema
             </CardTitle>
             <CardDescription>
-              Total de {users?.length || 0} usuários cadastrados
+              Total de {filteredUsers.length} de {users?.length || 0} usuários
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Buscar por email ou papel..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
             <div className="space-y-3">
-              {users?.map((user) => (
+              {filteredUsers.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Nenhum usuário encontrado
+                </div>
+              ) : (
+                filteredUsers.map((user) => (
                 <Card key={user.id}>
                   <CardContent className="pt-6">
                     <div className="flex flex-col gap-4">
@@ -246,7 +284,7 @@ export default function UserManagement() {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+              )))}
             </div>
           </CardContent>
         </Card>

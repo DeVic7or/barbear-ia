@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/formatters";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { User, Phone, Mail, Calendar, TrendingUp, Clock, DollarSign, Plus } from "lucide-react";
+import { User, Phone, Mail, Calendar, TrendingUp, Clock, DollarSign, Plus, Star } from "lucide-react";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
 
 const Clients = () => {
@@ -38,15 +38,14 @@ const Clients = () => {
               Gerenciar e visualizar informações dos clientes
             </p>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader>
-                <Skeleton className="h-6 w-32" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-20 w-full" />
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {[...Array(8)].map((_, i) => (
+              <Card key={i}>
+                <CardContent className="p-6">
+                  <Skeleton className="h-24 w-full" />
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </Layout>
@@ -69,43 +68,51 @@ const Clients = () => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Lista de Clientes */}
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="text-foreground">Lista de Clientes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 max-h-[600px] overflow-y-auto">
-              {clients?.map((client) => (
-                <div
-                  key={client.id}
-                  className={`p-4 rounded-lg border cursor-pointer transition-colors ${
-                    selectedClientId === client.id
-                      ? "bg-primary/10 border-primary"
-                      : "bg-card hover:bg-muted/50 border-border"
-                  }`}
-                  onClick={() => setSelectedClientId(client.id)}
-                >
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        {client.name.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground truncate">{client.name}</p>
-                      <p className="text-sm text-muted-foreground truncate">{client.phone}</p>
+        {/* Cards de Clientes */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {clients?.map((client) => (
+            <Card
+              key={client.id}
+              className={`cursor-pointer transition-all hover:shadow-md ${
+                selectedClientId === client.id
+                  ? "ring-2 ring-primary shadow-lg"
+                  : ""
+              }`}
+              onClick={() => setSelectedClientId(client.id)}
+            >
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center text-center gap-3">
+                  <Avatar className="h-16 w-16">
+                    <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                      {client.name.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="w-full">
+                    <h3 className="font-semibold text-foreground truncate">{client.name}</h3>
+                    <p className="text-sm text-muted-foreground truncate flex items-center justify-center gap-1">
+                      <Phone className="h-3 w-3" />
+                      {client.phone}
+                    </p>
+                  </div>
+                  <Separator />
+                  <div className="w-full">
+                    <div className="flex items-center justify-center gap-2 text-primary">
+                      <Star className="h-4 w-4 fill-primary" />
+                      <span className="text-lg font-bold">{client.appointment_count}</span>
                     </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {client.appointment_count === 1 ? "agendamento" : "agendamentos"}
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
         {/* Detalhes do Cliente */}
-        <div className="lg:col-span-2 space-y-6">
+        {selectedClientId && (
+        <div className="space-y-6 mt-8">
           {!selectedClientId ? (
             <Card>
               <CardContent className="flex items-center justify-center h-96">
@@ -310,7 +317,7 @@ const Clients = () => {
             </>
           ) : null}
         </div>
-        </div>
+        )}
       </div>
 
       <ClientFormDialog

@@ -13,17 +13,34 @@ export interface Client {
   updated_at: string;
 }
 
+export interface ClientWithStats extends Client {
+  appointment_count: number;
+}
+
 export const useClients = () => {
   return useQuery({
     queryKey: ["clients"],
     queryFn: async () => {
+      // Get clients with appointment count
       const { data, error } = await supabase
         .from("clients")
-        .select("*")
-        .order("name");
+        .select(`
+          *,
+          appointments!client_id(id)
+        `);
 
       if (error) throw error;
-      return data as Client[];
+
+      // Transform and sort by appointment count
+      const clientsWithStats = (data as any[]).map((client) => ({
+        ...client,
+        appointment_count: client.appointments?.length || 0,
+      }));
+
+      // Sort by appointment count (descending)
+      clientsWithStats.sort((a, b) => b.appointment_count - a.appointment_count);
+
+      return clientsWithStats as ClientWithStats[];
     },
   });
 };

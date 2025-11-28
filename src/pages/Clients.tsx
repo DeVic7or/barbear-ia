@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Layout } from "@/components/Layout";
 import { useClients, useCreateClient } from "@/hooks/useClients";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,7 +6,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Phone, Plus, Star } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Phone, Plus, Star, Search } from "lucide-react";
 import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
 import { ClientDetailsModal } from "@/components/clients/ClientDetailsModal";
 
@@ -15,7 +16,22 @@ const Clients = () => {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const createClient = useCreateClient();
+
+  // Filter clients based on search term
+  const filteredClients = useMemo(() => {
+    if (!clients) return [];
+    
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return clients;
+
+    return clients.filter((client) => {
+      const nameMatch = client.name.toLowerCase().includes(term);
+      const phoneMatch = client.phone.toLowerCase().includes(term);
+      return nameMatch || phoneMatch;
+    });
+  }, [clients, searchTerm]);
 
   const handleCreateClient = (data: any) => {
     createClient.mutate(data, {
@@ -65,9 +81,27 @@ const Clients = () => {
           </Button>
         </div>
 
+        {/* Search Bar */}
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Buscar por nome ou telefone..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+            maxLength={100}
+          />
+        </div>
+
         {/* Cards de Clientes */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-          {clients?.map((client) => (
+          {filteredClients.length === 0 && searchTerm ? (
+            <div className="col-span-full text-center py-12 text-muted-foreground">
+              <p>Nenhum cliente encontrado para "{searchTerm}"</p>
+            </div>
+          ) : (
+            filteredClients.map((client) => (
             <Card
               key={client.id}
               className="cursor-pointer transition-all hover:shadow-md hover:ring-2 hover:ring-primary"
@@ -104,7 +138,8 @@ const Clients = () => {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            ))
+          )}
         </div>
       </div>
 

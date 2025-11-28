@@ -21,6 +21,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Calendar,
   Clock,
@@ -48,6 +50,7 @@ export function AppointmentDetailsModal({
   const [additionalServiceIds, setAdditionalServiceIds] = useState<string[]>([]);
   const [additionalProductIds, setAdditionalProductIds] = useState<string[]>([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<string>("");
   const { toast } = useToast();
   
   const { data: services = [] } = useServices();
@@ -95,6 +98,15 @@ export function AppointmentDetailsModal({
   const totalPrice = mainServicePrice + additionalServicesTotal + additionalProductsTotal;
 
   const handleFinalize = async () => {
+    if (!paymentMethod) {
+      toast({
+        title: "Forma de pagamento obrigatória",
+        description: "Selecione uma forma de pagamento para continuar",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       await finalizeAppointment.mutateAsync({
         appointmentId: appointment.id,
@@ -103,15 +115,17 @@ export function AppointmentDetailsModal({
           productId: id,
           quantity: 1,
         })),
+        paymentMethod,
       });
 
       toast({
         title: "Agendamento finalizado!",
-        description: `Total: ${formatCurrency(totalPrice)}`,
+        description: `Total: ${formatCurrency(totalPrice)} - ${paymentMethod === 'pix' ? 'PIX' : 'Cartão de Crédito'}`,
       });
       
       setAdditionalServiceIds([]);
       setAdditionalProductIds([]);
+      setPaymentMethod("");
       setShowConfirmDialog(false);
       onOpenChange(false);
     } catch (error) {
@@ -351,11 +365,28 @@ export function AppointmentDetailsModal({
                   <span>{formatCurrency(totalPrice)}</span>
                 </div>
               </div>
+
+              <div className="mt-6 space-y-3">
+                <Label className="text-base font-semibold">Forma de Pagamento *</Label>
+                <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <div className="flex items-center space-x-2 p-3 rounded-lg border border-input hover:bg-accent cursor-pointer">
+                    <RadioGroupItem value="pix" id="pix" />
+                    <Label htmlFor="pix" className="flex-1 cursor-pointer">PIX</Label>
+                  </div>
+                  <div className="flex items-center space-x-2 p-3 rounded-lg border border-input hover:bg-accent cursor-pointer">
+                    <RadioGroupItem value="credit_card" id="credit_card" />
+                    <Label htmlFor="credit_card" className="flex-1 cursor-pointer">Cartão de Crédito</Label>
+                  </div>
+                </RadioGroup>
+                {!paymentMethod && (
+                  <p className="text-sm text-destructive">Selecione uma forma de pagamento</p>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleFinalize}>
+            <AlertDialogCancel onClick={() => setPaymentMethod("")}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleFinalize} disabled={!paymentMethod}>
               Confirmar
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -7,6 +7,18 @@ export interface ReportData {
     totalRevenue: number;
     averageTicket: number;
   };
+  appointmentTypes: {
+    presencial: {
+      count: number;
+      revenue: number;
+      percentage: number;
+    };
+    virtual: {
+      count: number;
+      revenue: number;
+      percentage: number;
+    };
+  };
   topProducts: Array<{
     id: string;
     name: string;
@@ -65,6 +77,7 @@ export const useReports = () => {
           barber_id,
           service_id,
           appointment_time,
+          appointment_type,
           status,
           barbers (id, name),
           services (id, name, price),
@@ -84,6 +97,10 @@ export const useReports = () => {
 
       // Calcular estatísticas de agendamentos concluídos
       let totalRevenue = 0;
+      let presencialCount = 0;
+      let presencialRevenue = 0;
+      let virtualCount = 0;
+      let virtualRevenue = 0;
       const productsMap = new Map<string, { name: string; quantity: number; revenue: number }>();
       const servicesMap = new Map<string, { name: string; count: number; revenue: number }>();
       const barbersMap = new Map<string, { name: string; appointments: number; revenue: number }>();
@@ -143,6 +160,15 @@ export const useReports = () => {
         });
 
         totalRevenue += appointmentTotal;
+
+        // Contabilizar por tipo de agendamento
+        if (appointment.appointment_type === "Presencial") {
+          presencialCount++;
+          presencialRevenue += appointmentTotal;
+        } else {
+          virtualCount++;
+          virtualRevenue += appointmentTotal;
+        }
 
         // Contabilizar barbeiro
         if (appointment.barber_id && appointment.barbers) {
@@ -207,6 +233,18 @@ export const useReports = () => {
           total: appointments?.length || 0,
           totalRevenue,
           averageTicket: appointments?.length ? totalRevenue / appointments.length : 0,
+        },
+        appointmentTypes: {
+          presencial: {
+            count: presencialCount,
+            revenue: presencialRevenue,
+            percentage: appointments?.length ? (presencialCount / appointments.length) * 100 : 0,
+          },
+          virtual: {
+            count: virtualCount,
+            revenue: virtualRevenue,
+            percentage: appointments?.length ? (virtualCount / appointments.length) * 100 : 0,
+          },
         },
         topProducts,
         bottomProducts,

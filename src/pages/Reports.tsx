@@ -2,7 +2,7 @@ import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useReports } from "@/hooks/useReports";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingUp, TrendingDown, Package, Users, Calendar } from "lucide-react";
+import { TrendingUp, TrendingDown, Package, Users, Calendar, Monitor, Store } from "lucide-react";
 import { formatCurrency } from "@/lib/formatters";
 
 const Reports = () => {
@@ -68,6 +68,104 @@ const Reports = () => {
                 <p className="text-2xl sm:text-3xl font-bold text-foreground">
                   {formatCurrency(reports?.completedAppointments.averageTicket || 0)}
                 </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Relatório de Tipos de Agendamento */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Monitor className="h-5 w-5" />
+              Agendamentos: Presencial vs Virtual
+            </CardTitle>
+            <CardDescription>
+              Comparativo entre agendamentos presenciais e virtuais com quantidade e receita
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Presencial */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-blue-500/10 border-2 border-blue-500/30">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-full bg-blue-500/20">
+                      <Store className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-bold text-foreground">Presencial</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {reports?.appointmentTypes.presencial.percentage.toFixed(1)}% do total
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-3 pl-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Quantidade</span>
+                    <span className="text-2xl font-bold text-foreground">
+                      {reports?.appointmentTypes.presencial.count || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Receita</span>
+                    <span className="text-2xl font-bold text-blue-600">
+                      {formatCurrency(reports?.appointmentTypes.presencial.revenue || 0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t">
+                    <span className="text-sm text-muted-foreground">Ticket Médio</span>
+                    <span className="text-lg font-semibold text-foreground">
+                      {formatCurrency(
+                        reports?.appointmentTypes.presencial.count
+                          ? reports.appointmentTypes.presencial.revenue / reports.appointmentTypes.presencial.count
+                          : 0
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Virtual */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-purple-500/10 border-2 border-purple-500/30">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-full bg-purple-500/20">
+                      <Monitor className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-bold text-foreground">Virtual</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {reports?.appointmentTypes.virtual.percentage.toFixed(1)}% do total
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-3 pl-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Quantidade</span>
+                    <span className="text-2xl font-bold text-foreground">
+                      {reports?.appointmentTypes.virtual.count || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Receita</span>
+                    <span className="text-2xl font-bold text-purple-600">
+                      {formatCurrency(reports?.appointmentTypes.virtual.revenue || 0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t">
+                    <span className="text-sm text-muted-foreground">Ticket Médio</span>
+                    <span className="text-lg font-semibold text-foreground">
+                      {formatCurrency(
+                        reports?.appointmentTypes.virtual.count
+                          ? reports.appointmentTypes.virtual.revenue / reports.appointmentTypes.virtual.count
+                          : 0
+                      )}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>

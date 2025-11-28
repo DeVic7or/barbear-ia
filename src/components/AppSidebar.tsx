@@ -1,4 +1,4 @@
-import { Home, Users, Calendar, DollarSign, Package, UserCircle, Scissors, FileText, CreditCard, Receipt, Shield, CalendarClock, User, BarChart3, CalendarDays } from "lucide-react";
+import { Home, Users, Calendar, DollarSign, Package, UserCircle, Scissors, FileText, CreditCard, Receipt, Shield, CalendarClock, User, BarChart3, CalendarDays, UserCog } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -101,6 +101,23 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
+                <SidebarMenuItem>
+                  <NavLink
+                    to="/usuarios"
+                    end
+                    className={open 
+                      ? "flex items-center px-4 py-3 hover:bg-secondary/80 transition-colors rounded-md" 
+                      : "flex items-center justify-center px-2 py-3 hover:bg-secondary/80 transition-colors rounded-md mx-auto w-12"
+                    }
+                    activeClassName={open
+                      ? "bg-primary/10 text-primary font-medium border-l-4 border-primary"
+                      : "bg-primary/10 text-primary font-medium"
+                    }
+                  >
+                    <UserCog className="h-5 w-5 flex-shrink-0" />
+                    {open && <span className="ml-3">Usuários</span>}
+                  </NavLink>
+                </SidebarMenuItem>
                 <SidebarMenuItem>
                   <NavLink
                     to="/admin"

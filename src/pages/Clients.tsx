@@ -35,10 +35,10 @@ const Clients = () => {
               Gerenciar e visualizar informações dos clientes
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
             {[...Array(8)].map((_, i) => (
               <Card key={i}>
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <Skeleton className="h-24 w-full" />
                 </CardContent>
               </Card>
@@ -66,7 +66,7 @@ const Clients = () => {
         </div>
 
         {/* Cards de Clientes */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
           {clients?.map((client) => (
             <Card
               key={client.id}
@@ -76,27 +76,28 @@ const Clients = () => {
                 setIsDetailsModalOpen(true);
               }}
             >
-              <CardContent className="p-6">
-                <div className="flex flex-col items-center text-center gap-3">
-                  <Avatar className="h-16 w-16">
-                    <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+              <CardContent className="p-3 sm:p-6">
+                <div className="flex flex-col items-center text-center gap-2 sm:gap-3">
+                  <Avatar className="h-12 w-12 sm:h-16 sm:w-16">
+                    <AvatarFallback className="bg-primary text-primary-foreground text-base sm:text-xl">
                       {client.name.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="w-full">
-                    <h3 className="font-semibold text-foreground truncate">{client.name}</h3>
-                    <p className="text-sm text-muted-foreground truncate flex items-center justify-center gap-1">
+                    <h3 className="font-semibold text-foreground truncate text-sm sm:text-base">{client.name}</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate flex items-center justify-center gap-1">
                       <Phone className="h-3 w-3" />
-                      {client.phone}
+                      <span className="hidden sm:inline">{client.phone}</span>
+                      <span className="sm:hidden">{client.phone.slice(0, 9)}...</span>
                     </p>
                   </div>
-                  <Separator />
+                  <Separator className="hidden sm:block" />
                   <div className="w-full">
-                    <div className="flex items-center justify-center gap-2 text-primary">
-                      <Star className="h-4 w-4 fill-primary" />
-                      <span className="text-lg font-bold">{client.appointment_count}</span>
+                    <div className="flex items-center justify-center gap-1 sm:gap-2 text-primary">
+                      <Star className="h-3 w-3 sm:h-4 sm:w-4 fill-primary" />
+                      <span className="text-base sm:text-lg font-bold">{client.appointment_count}</span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-muted-foreground mt-1 hidden sm:block">
                       {client.appointment_count === 1 ? "agendamento" : "agendamentos"}
                     </p>
                   </div>

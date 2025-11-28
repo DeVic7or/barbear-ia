@@ -130,7 +130,7 @@ export default function UserManagement() {
   if (isLoading) {
     return (
       <Layout>
-        <div className="space-y-4 sm:space-y-6 px-4 sm:px-0">
+        <div className="space-y-4 sm:space-y-6">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold">Gerenciar Usuários</h1>
             <p className="text-sm sm:text-base text-muted-foreground mt-1">
@@ -153,7 +153,7 @@ export default function UserManagement() {
 
   return (
     <Layout>
-      <div className="space-y-4 sm:space-y-6 px-4 sm:px-0">
+      <div className="space-y-4 sm:space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold">Gerenciar Usuários</h1>
@@ -165,20 +165,20 @@ export default function UserManagement() {
         </div>
 
         <Card>
-          <CardHeader className="px-4 sm:px-6">
-            <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
               <UserCog className="h-5 w-5" />
               Usuários do Sistema
             </CardTitle>
-            <CardDescription className="text-sm">
+            <CardDescription>
               Total de {users?.length || 0} usuários cadastrados
             </CardDescription>
           </CardHeader>
-          <CardContent className="px-4 sm:px-6">
-            <div className="space-y-3 sm:space-y-4">
+          <CardContent>
+            <div className="space-y-3">
               {users?.map((user) => (
                 <Card key={user.id}>
-                  <CardContent className="p-4 sm:pt-6 sm:px-6">
+                  <CardContent className="pt-6">
                     <div className="flex flex-col gap-4">
                       <div className="flex-1 space-y-3">
                         <div className="flex items-start gap-2">

@@ -1,20 +1,32 @@
 import { useState } from "react";
 import { Layout } from "@/components/Layout";
-import { useClients, useClientDetails } from "@/hooks/useClients";
+import { useClients, useClientDetails, useCreateClient } from "@/hooks/useClients";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/formatters";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { User, Phone, Mail, Calendar, TrendingUp, Clock, DollarSign } from "lucide-react";
+import { User, Phone, Mail, Calendar, TrendingUp, Clock, DollarSign, Plus } from "lucide-react";
+import { ClientFormDialog } from "@/components/clients/ClientFormDialog";
 
 const Clients = () => {
   const { data: clients, isLoading } = useClients();
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { data: clientDetails, isLoading: isLoadingDetails } = useClientDetails(selectedClientId || "");
+  const createClient = useCreateClient();
+
+  const handleCreateClient = (data: any) => {
+    createClient.mutate(data, {
+      onSuccess: () => {
+        setIsDialogOpen(false);
+      },
+    });
+  };
 
   if (isLoading) {
     return (
@@ -44,11 +56,17 @@ const Clients = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-6 sm:py-8 space-y-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Clientes</h1>
-          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-            Gerenciar e visualizar informações dos clientes
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Clientes</h1>
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+              Gerenciar e visualizar informações dos clientes
+            </p>
+          </div>
+          <Button onClick={() => setIsDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Cadastrar Cliente
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -292,8 +310,15 @@ const Clients = () => {
             </>
           ) : null}
         </div>
+        </div>
       </div>
-      </div>
+
+      <ClientFormDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onSubmit={handleCreateClient}
+        isLoading={createClient.isPending}
+      />
     </Layout>
   );
 };

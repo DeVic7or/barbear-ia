@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface Client {
   id: string;
@@ -103,5 +104,42 @@ export const useClientDetails = (clientId: string) => {
       };
     },
     enabled: !!clientId,
+  });
+};
+
+export const useCreateClient = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (clientData: {
+      name: string;
+      phone: string;
+      email?: string;
+      birthday?: string;
+      notes?: string;
+    }) => {
+      const { data, error } = await supabase
+        .from("clients")
+        .insert({
+          name: clientData.name.trim(),
+          phone: clientData.phone.trim(),
+          email: clientData.email?.trim() || null,
+          birthday: clientData.birthday || null,
+          notes: clientData.notes?.trim() || null,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      toast.success("Cliente cadastrado com sucesso!");
+    },
+    onError: (error: any) => {
+      console.error("Error creating client:", error);
+      toast.error("Erro ao cadastrar cliente");
+    },
   });
 };

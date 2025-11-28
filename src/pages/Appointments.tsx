@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Calendar, Clock, User, Loader2, CheckCircle2, XCircle, Phone } from "lucide-react";
+import { Plus, Calendar, Clock, User, Loader2, CheckCircle2, XCircle, Phone, Monitor, Store } from "lucide-react";
 import { useState, useMemo } from "react";
 import { AppointmentDetailsModal } from "@/components/appointments/AppointmentDetailsModal";
 import { NewAppointmentDialog } from "@/components/appointments/NewAppointmentDialog";
@@ -61,10 +61,32 @@ const Appointments = () => {
           </Avatar>
           
           <div className="flex-1 min-w-0 space-y-2">
-            {/* Nome do Cliente */}
-            <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
-              {appointment.client_name}
-            </h3>
+            {/* Nome do Cliente e Tipo */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+                {appointment.client_name}
+              </h3>
+              <Badge 
+                variant="outline" 
+                className={`${
+                  appointment.appointment_type === "Presencial" 
+                    ? "bg-blue-500/10 text-blue-600 border-blue-500/30" 
+                    : "bg-purple-500/10 text-purple-600 border-purple-500/30"
+                }`}
+              >
+                {appointment.appointment_type === "Presencial" ? (
+                  <>
+                    <Store className="h-3 w-3 mr-1" />
+                    Presencial
+                  </>
+                ) : (
+                  <>
+                    <Monitor className="h-3 w-3 mr-1" />
+                    Virtual
+                  </>
+                )}
+              </Badge>
+            </div>
             
             {/* Telefone */}
             {appointment.client_phone && (

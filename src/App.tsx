@@ -19,6 +19,7 @@ import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
 import Schedule from "./pages/Schedule";
 import UserManagement from "./pages/UserManagement";
+import Agent from "./pages/Agent";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -47,6 +48,7 @@ const App = () => (
           <Route path="/planos" element={<ProtectedRoute><GerenteRoute><Plans /></GerenteRoute></ProtectedRoute>} />
           <Route path="/pagamentos" element={<ProtectedRoute><GerenteRoute><Payments /></GerenteRoute></ProtectedRoute>} />
           <Route path="/usuarios" element={<ProtectedRoute><GerenteRoute><UserManagement /></GerenteRoute></ProtectedRoute>} />
+          <Route path="/agente" element={<ProtectedRoute><GerenteRoute><Agent /></GerenteRoute></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute><AdminRoute><Admin /></AdminRoute></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

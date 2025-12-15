@@ -1,4 +1,4 @@
-import { Home, Users, Calendar, DollarSign, Package, UserCircle, Scissors, FileText, CreditCard, Receipt, Shield, CalendarClock, User, BarChart3, CalendarDays, UserCog } from "lucide-react";
+import { Home, Users, Calendar, DollarSign, Package, UserCircle, Scissors, FileText, CreditCard, Receipt, Shield, CalendarClock, User, BarChart3, CalendarDays, UserCog, Bot } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -40,6 +40,7 @@ export function AppSidebar() {
     { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
     { title: "Planos", url: "/planos", icon: CreditCard },
     { title: "Pagamentos", url: "/pagamentos", icon: Receipt },
+    { title: "Agente", url: "/agente", icon: Bot },
   ];
 
   const menuItems = isGerente 

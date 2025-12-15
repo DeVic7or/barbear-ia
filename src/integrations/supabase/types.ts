@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_settings: {
+        Row: {
+          connected_at: string | null
+          connection_status: string | null
+          created_at: string
+          id: string
+          instance_id: string | null
+          instance_name: string | null
+          is_active: boolean
+          qr_code: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connected_at?: string | null
+          connection_status?: string | null
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          instance_name?: string | null
+          is_active?: boolean
+          qr_code?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connected_at?: string | null
+          connection_status?: string | null
+          created_at?: string
+          id?: string
+          instance_id?: string | null
+          instance_name?: string | null
+          is_active?: boolean
+          qr_code?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       appointment_products: {
         Row: {
           appointment_id: string
